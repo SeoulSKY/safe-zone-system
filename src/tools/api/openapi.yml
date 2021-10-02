@@ -1,0 +1,131 @@
+openapi: 3.0.0
+info:
+  title: Message In A Bottle Service (MIBS)
+  description: Server responsible for handling "messages in a bottle".
+  version: 0.0.1
+paths:
+  /mibs:
+    get:
+      summary: Returns message(s) in a bottle for the user.
+      description: Gets a single MessageInABottle if the messageId is present,
+        otherwise if not messageId is present get all MessageInABottle for 
+        the current user.
+      parameters:
+        - name: messageId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A JSON array of all MessageInABottle for the user if no 
+            messagId is specified, otherwise if a messageId is specified, return 
+            only the MessageInABottle that cooresponds to that messageId.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items: 
+                      $ref: '#/components/schemas/MessageInABottle'
+                  - $ref: '#/components/schemas/MessageInABottle'
+        '401':
+          description: User is not authorized.
+        '404':
+          description: User does not have a MessageInABottle with a messageId of 
+            messageId.
+  
+    post:
+      summary: Creates a message in a bottle for the user.
+      requestBody:
+        required: true
+        description: messageId will be ignored.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/MessageInABottle'
+      responses:
+        '201':
+          description: MessageInABottle was successfully created.
+        '400':
+          description: Request body does not contain required parameters.
+        '401':
+          description: User is not authorized.
+
+    put:
+      summary: Updates a message in a bottle for the user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/MessageInABottle'
+                - required: 
+                  - messageId
+      responses:
+        '200':
+          description: MessageInABottle was updated successfully.
+        '400':
+          description: Request body does not contain required parameters.
+        '401':
+          description: User is not authorized.
+          
+    delete: 
+      summary: Deletes message(s) in a bottle for the user.
+      description: Deletes a single MessageInABottle if the messageId is present,
+        otherwise if not messageId is present delete all MessageInABottle for 
+        the current user.
+      parameters:
+        - name: messageId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully deleted the MessageInABottle
+        '401':
+          description: User is not authorized.
+        '404':
+          description: User does not have a MessageInABottle with a messageId of 
+            messageId.
+
+components:
+  schemas:
+    MessageInABottle:
+      type: object
+      properties:
+        messageId:
+          type: integer
+        message: 
+          type: string
+        recipients:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/EmailRecipient'
+              - $ref: '#/components/schemas/SmsRecipient'
+              - $ref: '#/components/schemas/UserRecipient'
+      required:
+       - message
+       - recipients
+    EmailRecipient:
+      type: object
+      properties:
+        email: 
+          type: string
+        
+    SmsRecipient:
+      type: object
+      properties:
+        phoneNumber: 
+          type: string
+        
+    UserRecipient:
+      type: object
+      properties:
+        userId: 
+          type: string
+          
