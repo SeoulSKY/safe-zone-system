@@ -1,0 +1,9 @@
+{
+  "name": "Backend",
+  "dockerComposeFile": ["../../../docker-compose.dev.yml", "../../../docker-compose.dev.vscode.yml"],
+  "service": "backend-dev-server",
+  "shutdownAction": "none",
+  "workspaceFolder": "/workspace",
+  "extensions": ["ms-python.python"],
+  "postCreateCommand": "${containerWorkspaceFolder}/src/backend/.devcontainer/postCreate.sh",
+}
