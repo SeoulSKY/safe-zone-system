@@ -17,21 +17,15 @@ services:
   #     context: src/projects/web
   #   expose:
   #     - 80
-  #   depends_on: 
-  #     - reverse-proxy
 
   cms:
     build: 
       context: src/projects/cms
     expose:
       - 80
-    depends_on: 
-      - reverse-proxy
 
   mibs:
     build: 
       context: src/projects/mibs
     expose:
       - 80
-    depends_on: 
-      - reverse-proxy
