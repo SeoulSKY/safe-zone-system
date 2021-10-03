@@ -11,7 +11,7 @@ services:
       # - web
       - cms
       - mibs
-
+  
   # web:
   #   build: 
   #     context: src/projects/web
@@ -29,3 +29,35 @@ services:
       context: src/projects/mibs
     expose:
       - 80
+  
+  postgres:
+    image: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: database
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5432:5432
+
+  keycloak:
+    build:
+      context: src/projects/keycloak
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres
+      DB_DATABASE: database
+      DB_USER: user
+      DB_SCHEMA: public
+      DB_PASSWORD: password
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: cmpt371
+    depends_on: 
+      - postgres
+    ports:
+      - 8080:8080
+
+volumes:
+  postgres_data:
+    driver: local
