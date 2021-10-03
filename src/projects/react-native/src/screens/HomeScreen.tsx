@@ -10,7 +10,7 @@ export default function HomeScreen() {
   useEffect(() => {
     fetch('http://localhost/cms/hello', {method: 'GET'})
       .then((response: Response) => {console.log('response', response); return response.text()})
-      .then((text) => {setCmsText(text); console.log(text.length)})
+      .then(setMibsText)
       .catch((error: Error) => setCmsText(`Error: ${error.message}`))
 
     fetch('http://localhost/mibs/hello', {method: 'GET'})
