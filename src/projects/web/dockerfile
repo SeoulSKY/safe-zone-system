@@ -1,0 +1,20 @@
+# build environment
+
+# grab alpine distro of node and name it "build"
+FROM node:13.12.0-alpine as build
+# set workdir as app
+WORKDIR /app
+# copy project to directory
+COPY . .
+# run yarn to install packages
+RUN yarn
+# run build script to generate build files
+RUN yarn build
+
+# production environment
+# grab alpine distro of nginx
+FROM nginx:1.18-alpine
+# work on port 80
+EXPOSE 80
+# run nginx
+CMD ["nginx", "-g", "daemon off;"]
