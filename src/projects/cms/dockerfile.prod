@@ -15,4 +15,4 @@ COPY . ./
 COPY entrypoint.sh /
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["nginx-debug", "-g", "daemon off;"]
+CMD ["nginx", "-g", "daemon off;"]
