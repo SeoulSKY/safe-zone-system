@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-export default function GetRequest() {
+export default function HomePage() {
   const [cmsText, setCmsText] = useState('No Response')
   const [mibsText, setMibsText] = useState('No Response')
 
@@ -18,7 +18,7 @@ export default function GetRequest() {
 
   return (
     <div>
-      <p>Home Screen</p>
+      <p>Home Page</p>
       <p>{`CMS Response: ${cmsText}`}</p>
       <p>{`MIBS Response: ${mibsText}`}</p>
     </div>

@@ -1,10 +1,10 @@
 import React from 'react';
 
-import GetRequest from './request/GetRequest'
+import HomePage from './pages/HomePage'
 
 function App() {
   return (
-      GetRequest()
+      HomePage()
   );
 }
 
