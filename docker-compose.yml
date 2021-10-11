@@ -31,7 +31,8 @@ services:
       - 80
   
   postgres:
-    image: postgres
+    build:
+      context: src/projects/postgres-dev
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
