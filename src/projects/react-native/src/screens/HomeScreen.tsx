@@ -15,18 +15,15 @@ export default function HomeScreen() {
 
   useEffect(() => {
     fetch('http://localhost/cms/hello', {method: 'GET'})
-        .then((response: Response) => {
-          console.log('response', response);
-          return response.text();
-        })
-        .then(setCmsText)
-        .catch((error: Error) => setCmsText(`Error: ${error.message}`));
+      .then((response: Response) => response.text())
+      .then(setCmsText)
+      .catch((error: Error) => setCmsText(`Error: ${error.message}`))
 
     fetch('http://localhost/mibs/hello', {method: 'GET'})
-        .then((response: Response) => response.text() )
-        .then(setMibsText)
-        .catch((error: Error) => setMibsText(`Error: ${error.message}`));
-  }, [setCmsText, setMibsText]);
+      .then((response: Response) => response.text())
+      .then(setMibsText)
+      .catch((error: Error) => setMibsText(`Error: ${error.message}`))
+  }, [setCmsText, setMibsText])
 
   return (
     <View style={styles.container}>
