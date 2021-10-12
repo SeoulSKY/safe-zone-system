@@ -1,10 +1,15 @@
 from flask import Flask, request
-from models import db, Message, EmailMessageRecipient
+import os
+from models import db, Message
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://user:passsword@localhost:5432'
+db_name = os.environ.get('DB_DATABASE')
+db_user = os.environ.get('DB_USER')
+db_pass = os.environ.get('DB_PASSWORD')
+app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql+psycopg2://{db_user}:{db_pass}@postgres/{db_name}"
 db.init_app(app)
+
 
 @app.route('/mibs/hello',methods=['POST','GET'])
 def info():
@@ -14,3 +19,9 @@ def info():
         return 'No Get'
 
 
+@app.route('/mibs/db_test',methods=['POST','GET'])
+def db_test():
+    if request.method == 'GET':
+        return f"{Message.query.all()}"
+    else:
+        return 'No Get'
