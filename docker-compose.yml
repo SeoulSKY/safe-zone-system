@@ -31,6 +31,8 @@ services:
       DB_DATABASE: mibs
       DB_USER: admin
       DB_PASSWORD: password
+    depends_on:
+      - postgres
     expose:
       - 80
   
