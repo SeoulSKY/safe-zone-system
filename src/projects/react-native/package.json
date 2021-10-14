@@ -1,12 +1,14 @@
 {
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "lint": "eslint src/**/*.ts src/**/*.tsx",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "eject": "expo eject"
+    "eject": "expo eject",
+    "lint": "eslint src/**/*.ts src/**/*.tsx",
+    "test": "jest --detectOpenHandles",
+    "test-watch": "npm run test -- --watch"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.0.7",
@@ -27,6 +29,10 @@
   "devDependencies": {
     "@babel/core": "^7.15.5",
     "@babel/eslint-parser": "^7.15.7",
+    "@testing-library/jest-native": "^4.0.2",
+    "@testing-library/react-hooks": "^7.0.2",
+    "@testing-library/react-native": "^7.2.0",
+    "@types/jest": "^27.0.2",
     "@types/react": "~16.9.35",
     "@types/react-native": "~0.63.2",
     "babel-eslint": "^10.1.0",
@@ -37,6 +43,8 @@
     "eslint-plugin-react": "^7.26.1",
     "eslint-plugin-react-native": "^3.11.0",
     "expo-cli": "^4.12.1",
+    "jest-expo": "^42.1.0",
+    "ts-node": "^10.3.0",
     "typescript": "~4.0.0"
   },
   "private": true
