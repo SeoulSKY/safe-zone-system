@@ -1,31 +1,31 @@
 version: "3.9"
 
-services: 
+services:
   reverse-proxy:
-    build: 
+    build:
       context: src/projects/reverse-proxy
-    ports: 
+    ports:
       - 80:80
     restart: always
     depends_on:
-      # - web
+      - web
       - cms
       - mibs
-  
-  # web:
-  #   build: 
-  #     context: src/projects/web
-  #   expose:
-  #     - 80
+
+  web:
+    build:
+      context: src/projects/web
+    expose:
+      - 80
 
   cms:
-    build: 
+    build:
       context: src/projects/cms
     expose:
       - 80
 
   mibs:
-    build: 
+    build:
       context: src/projects/mibs
     expose:
       - 80
