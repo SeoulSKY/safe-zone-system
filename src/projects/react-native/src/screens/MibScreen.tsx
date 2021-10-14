@@ -1,8 +1,10 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 
 /**
  * The Screen for the Message In a Bottle feature.
+ * @method
+ * @return {View}
  */
 export default function MibScreen() {
   return (
@@ -12,11 +14,13 @@ export default function MibScreen() {
   );
 }
 
+const textColor = '#fff';
+
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#fff',
     alignItems: 'center',
+    backgroundColor: textColor,
+    flex: 1,
     justifyContent: 'center',
   },
 });

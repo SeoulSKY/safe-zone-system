@@ -1,0 +1,218 @@
+name: ci workflow
+    
+on:
+  # Triggers the workflow on push or pull request events for the main branch and releases branches
+  push:
+    branches: [ master, ID*, ciworkflow]
+  pull_request:
+    branches: [ master, ID*, ciworkflow]
+
+jobs:
+  python-job:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: { dir: ['src/projects/cms', 'src/projects/mibs'] } 
+    env:
+        cache-name: cache-requirements
+        lint-file: ${{ github.workspace }}/'src/tools/lint_conf/pylintrc'
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+
+      - name: python setup
+        uses: actions/setup-python@v2
+        
+      - name: cache dependencies
+        id: cache-step
+        uses: actions/cache@v2
+        with:
+            path: ~/.cache/pip
+            key: ${{ runner.os }}-pip-${{env.cache-name}}-${{ hashFiles('**/requirements.txt') }}
+            restore-keys: |
+                ${{ runner.os }}-pip-${{env.cache-name}}
+                ${{ runner.os }}-pip-
+                
+      - name: install pylint and virtualenv
+        run: |
+            pip install pylint
+            pip install virtualenv
+            
+      - name: setup virtual environment in ${{ matrix.dir }}
+        run: |
+            python3 -m venv env-dir
+            source env-dir/bin/activate
+        working-directory: ${{ matrix.dir }}
+        
+      - name: install and cache requirement dependencies
+        if: steps.cache-step.outputs.cache-hit != 'true'
+        run: |
+            pip install -r requirements.txt 
+        working-directory: ${{ matrix.dir }}
+
+      - name: analyzing code with pylint
+        run: |
+            python3 -m pylint --rcfile ${{env.lint-file}} ./src/*.py
+#         python3 -m pylint --rcfile ${{env.lint-file}} ./test/*.py
+        working-directory: ${{ matrix.dir }}
+
+#       - name: testing python projects
+#         run: python -m unittest discover -s ./test
+#         working-directory: ${{ matrix.dir }}
+
+#       - name: #run coverage
+#         run: #run coverage command and publish results
+#         working-directory: ${{ matrix.dir }}
+
+  react-native-job:
+    runs-on: ubuntu-latest
+    env:
+      cache-name: cache-node-modules
+    strategy:
+      matrix:
+        node-version: [16]
+        path: ['src/projects/react-native']
+        
+    steps:
+      - name: check out repository
+        uses: actions/checkout@v2
+
+      - name: react-native setup; version=${{matrix.node-version}}
+        uses: actions/setup-node@v1
+        with: 
+          node-version: ${{matrix.node-version}}
+
+      - name: cache dependencies
+        id: cache-step
+        uses: actions/cache@v2
+        with:
+            path: ~/.npm
+            key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+            restore-keys: |
+                ${{ runner.os }}-build-${{ env.cache-name }}-
+                ${{ runner.os }}-build-
+                ${{ runner.os }}-
+                
+      - name: install and cache project dependencies
+        if: steps.cache-step.outputs.cache-hit != 'true'
+        run: npm install
+        working-directory: ${{ matrix.path }}
+        
+      - name: install lint dependencies
+        run: |
+            npm i babel-eslint --save-dev
+            npm install eslint --save-dev
+        working-directory: ${{ matrix.path }}
+
+      - name: run build
+        run: npm run build --if-present # do what is specified in package.json file
+        working-directory: ${{ matrix.path }}
+        
+      - name: run lint
+        run: npm run lint
+        working-directory: ${{ matrix.path }}
+
+#       - name: run test
+#         run: npm test
+#         working-directory: ${{ matrix.path }}
+        
+#   react-job:
+#     runs-on: ubuntu-latest
+#     env:
+#       cache-name: cache-react-node-module
+#     strategy:
+#       matrix:
+#         node-version: [16]
+#         path: ['src/projects/web']
+        
+#     steps:
+#       - name: check out repository
+#         uses: actions/checkout@v2
+
+#       - name: react-native setup; version=${{matrix.node-version}}
+#         uses: actions/setup-node@v1
+#         with: 
+#           node-version: ${{matrix.node-version}}
+
+#       - name: cache dependencies
+#         id: cache-step
+#         uses: actions/cache@v2
+#         with:
+#             path: ~/.npm
+#             key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+#             restore-keys: |
+#                 ${{ runner.os }}-build-${{ env.cache-name }}-
+#                 ${{ runner.os }}-build-
+#                 ${{ runner.os }}-
+                
+#       - name: install and cache dependencies
+#         if: steps.cache-step.outputs.cache-hit != 'true'
+#         run: npm install
+#         working-directory: ${{ matrix.path }}
+        
+#       - name: run build
+#         run: npm run build --if-present # do what is specified in package.json file
+#         working-directory: ${{ matrix.path }}
+        
+#       - name: install lint dependencies
+#         run: |
+#             npm install eslint-plugin-react@latest --save-dev 
+#             npm install eslint-plugin-react-native@latest --save-dev 
+#             npm install eslint-config-google --save-dev
+#             npm audit fix
+#             npm i babel-eslint --save-dev
+
+#       - name: run lint
+#         run: npm run lint
+#         working-directory: ${{ matrix.path }}
+
+#       - name: run test
+#         run: |
+#           npm test
+#         working-directory: ${{ matrix.path }}
+
+# #       - name: #run coverage
+# #         run: #run coverage command and publish results
+
+  docker-job:
+#      needs: [ python-job, react-native-job ]
+     runs-on: ubuntu-latest
+     strategy:
+       matrix: { path: ['src/projects/reverse-proxy', 'src/projects/mibs', 'src/projects/cms', 'src/projects/keycloak', 'src/projects/smtp-dev', 'src/projects/postgres-dev'] }
+
+     permissions: 
+        contents: read
+        packages: write 
+     steps:
+      - name: Check out repo
+        uses: actions/checkout@v2
+        
+      - name: get image name
+        run: echo ::set-output name=image-name::$(echo $(basename "${{matrix.path}}"))
+        id: image-name-gen
+     
+      - name: Build ${{steps.image-name-gen.outputs.image-name}} docker image
+        run: |
+            docker build --tag ${{steps.image-name-gen.outputs.image-name}}:${GITHUB_REF##*/}-$(date +'%Y-%m-%d-T-%H-%M-%S')  .
+            docker images
+        working-directory: ${{ matrix.path }}
+        
+  
+#       - name: Generate python-flask modules
+#         run : |
+#          if [[ ${{steps.image-name-gen.outputs.image-name}} == 'cms' || 
+#          ${{steps.image-name-gen.outputs.image-name}} == 'mibs' ]]; then
+#          npm install @openapitools/openapi-generator-cli -g --save-dev --legacy-peer-deps
+#          openapi-generator-cli generate -i src/tools/api/openapi.yml -g python-flask -o src/lib/${{steps.image-name-gen.outputs.image-name}}
+#          fi
+#          exit 0
+#         shell: bash
+         
+
+#      env:
+#        REGISTRY: ghcr.io
+#        IMAGE_NAME: ${{ github.repository }}
+#          - name: Extract metadata (tags, labels) for Docker
+#         id: meta
+#         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+#         with:
+#           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
