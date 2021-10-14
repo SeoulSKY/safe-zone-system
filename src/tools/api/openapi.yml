@@ -10,6 +10,9 @@ paths:
       description: Gets a single MessageInABottle if the messageId is present,
         otherwise if not messageId is present get all MessageInABottle for 
         the current user.
+      operationId: getMessage
+      tags:
+        - mibs
       parameters:
         - name: messageId
           in: query
@@ -24,11 +27,9 @@ paths:
           content:
             application/json:
               schema:
-                oneOf:
-                  - type: array
-                    items: 
-                      $ref: '#/components/schemas/MessageInABottle'
-                  - $ref: '#/components/schemas/MessageInABottle'
+                type: array
+                items: 
+                  $ref: '#/components/schemas/MessageInABottle'
         '401':
           description: User is not authorized.
         '404':
@@ -37,14 +38,16 @@ paths:
   
     post:
       summary: Creates a message in a bottle for the user.
+      operationId: createMessage
+      tags:
+        - mibs
       requestBody:
         required: true
         description: messageId will be ignored.
         content:
           application/json:
             schema:
-              allOf:
-                - $ref: '#/components/schemas/MessageInABottle'
+              $ref: '#/components/schemas/MessageInABottle'
       responses:
         '201':
           description: MessageInABottle was successfully created.
@@ -55,15 +58,17 @@ paths:
 
     put:
       summary: Updates a message in a bottle for the user.
+      operationId: updateMessage
+      tags:
+        - mibs
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              allOf:
-                - $ref: '#/components/schemas/MessageInABottle'
-                - required: 
-                  - messageId
+              $ref: '#/components/schemas/MessageInABottle'
+              required: 
+                - messageId
       responses:
         '200':
           description: MessageInABottle was updated successfully.
@@ -77,6 +82,9 @@ paths:
       description: Deletes a single MessageInABottle if the messageId is present,
         otherwise if not messageId is present delete all MessageInABottle for 
         the current user.
+      operationId: deleteMessage
+      tags:
+        - mibs
       parameters:
         - name: messageId
           in: query

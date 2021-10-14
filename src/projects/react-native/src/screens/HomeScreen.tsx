@@ -1,5 +1,9 @@
-import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { MibsApi} from '../../lib/apis';
+
+
+const mibsApi = new MibsApi() // shows that api module can be imported
 
 /**
  * Home Screen
