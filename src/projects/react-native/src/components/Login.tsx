@@ -23,7 +23,7 @@ export const Login = () => {
   }
   return (
     <Button
-      disabled={loginReady}
+      disabled={!loginReady}
       title="Login"
       onPress={login}
     />
