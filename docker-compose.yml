@@ -27,16 +27,23 @@ services:
   mibs:
     build:
       context: src/projects/mibs
+    environment:
+      DB_DATABASE: mibs
+      DB_USER: admin
+      DB_PASSWORD: password
+    depends_on:
+      - postgres
     expose:
       - 80
   
   postgres:
-    image: postgres
+    build:
+      context: src/projects/postgres-dev
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: database
-      POSTGRES_USER: user
+      POSTGRES_DB: auth
+      POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
     expose:
       - 5432
@@ -47,8 +54,8 @@ services:
     environment:
       DB_VENDOR: POSTGRES
       DB_ADDR: postgres
-      DB_DATABASE: database
-      DB_USER: user
+      DB_DATABASE: auth
+      DB_USER: admin
       DB_SCHEMA: public
       DB_PASSWORD: password
       KEYCLOAK_USER: admin
