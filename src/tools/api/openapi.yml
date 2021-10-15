@@ -22,8 +22,8 @@ paths:
       responses:
         '200':
           description: A JSON array of all MessageInABottle for the user if no 
-            messagId is specified, otherwise if a messageId is specified, return 
-            only the MessageInABottle that cooresponds to that messageId.
+            messageId is specified, otherwise if a messageId is specified, return 
+            only the MessageInABottle that corresponds to that messageId.
           content:
             application/json:
               schema:

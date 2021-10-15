@@ -2,11 +2,10 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "lint": "eslint src/**/*.ts src/**/*.tsx",
-    "apigen": "openapi-generator-cli generate -i ../../tools/api/openapi.yml -g typescript-fetch -o lib/apis",
-    "start": "npm run apigen && expo start",
-    "android": "npm run apigen && expo start --android",
-    "ios": "npm run apigen && expo start --ios",
-    "web": "npm run apigen && expo start --web",
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
     "eject": "expo eject"
   },
   "dependencies": {
@@ -14,6 +13,7 @@
     "@react-navigation/native": "^6.0.4",
     "expo": "~42.0.1",
     "expo-status-bar": "~1.0.4",
+    "mibs": "file:../../lib/mibs/ts",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-42.0.0.tar.gz",
@@ -24,7 +24,6 @@
   "devDependencies": {
     "@babel/core": "^7.15.5",
     "@babel/eslint-parser": "^7.15.7",
-    "@openapitools/openapi-generator-cli": "^2.4.12",
     "@types/react": "~16.9.35",
     "@types/react-native": "~0.63.2",
     "babel-eslint": "^10.1.0",

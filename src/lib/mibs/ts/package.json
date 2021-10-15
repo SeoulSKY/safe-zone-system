@@ -1,0 +1,9 @@
+{
+  "name": "mibs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "dependencies": {
+    "@babel/runtime": "^7.15.4"
+  }
+}

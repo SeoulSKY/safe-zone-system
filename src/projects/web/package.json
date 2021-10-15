@@ -17,10 +17,9 @@
     "web-vitals": "^1.1.2"
   },
   "scripts": {
-    "apigen": "openapi-generator-cli generate -i ../../tools/api/openapi.yml -g typescript-fetch -o lib/apis",
-    "start": "npm run apigen && react-scripts start",
-    "build": "npm run apigen && react-scripts build",
-    "test": "npm run apigen && react-scripts test",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -41,7 +40,5 @@
       "last 1 safari version"
     ]
   },
-  "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.4.12"
-  }
+  "devDependencies": {}
 }
