@@ -1,18 +1,19 @@
 {
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
+    "lint": "eslint src/**/*.ts src/**/*.tsx",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "eject": "expo eject",
-    "lint": "eslint src/**/*.ts src/**/*.tsx"
+    "eject": "expo eject"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.0.7",
     "@react-navigation/native": "^6.0.4",
     "expo": "~42.0.1",
     "expo-status-bar": "~1.0.4",
+    "mibs": "file:../../lib/mibs/ts",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-42.0.0.tar.gz",

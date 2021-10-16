@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { MibsApi } from 'mibs'
+
+const mibsApi = new MibsApi()
 
 export default function HomePage() {
   const [cmsText, setCmsText] = useState('No Response')

@@ -1,5 +1,8 @@
-import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { MibsApi } from 'mibs';
+
+const mibsApi = new MibsApi() // test mibs import
 
 /**
  * Home Screen
