@@ -63,7 +63,10 @@ export const useLogin = () => {
         },
         discovery
       )
-        .then(setTokens)
+        .then((res) => {
+          console.log()
+          setTokens(res)
+          })
         .catch(console.error);
     }
   }

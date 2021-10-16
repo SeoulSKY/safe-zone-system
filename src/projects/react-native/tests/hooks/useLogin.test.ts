@@ -6,7 +6,6 @@ import {exchangeCodeAsync, makeRedirectUri, revokeAsync, useAuthRequest, useAuto
 
 jest.useFakeTimers()
 
-
 const expectedClientId = 'safe-zone'
 const expectedScopes = ['openid']
 jest.mock('../../src/common/constants', () => ({
@@ -156,7 +155,6 @@ test('Login function', () => {
   login()
   expect(loginFunction).toHaveBeenCalledTimes(1)
 })
-
 
 test('Logout function', async () => {
   useAutoDiscovery.mockImplementation(() => testDiscovery)
