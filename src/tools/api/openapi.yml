@@ -7,9 +7,22 @@ paths:
   /mibs:
     get:
       summary: Returns message(s) in a bottle for the user.
-      description: Gets a single MessageInABottle if the messageId is present,
+      description: |
+        Gets a single MessageInABottle if the messageId is present,
         otherwise if not messageId is present get all MessageInABottle for 
         the current user.
+        
+            Precondition: 
+              - User is authorized.
+              - If messageId is present then a MessageInABottle with messageId
+              must exist for the user
+            
+            Postcondition: An list of 0 or more MessageInABottle.
+              Case: messageId present.
+                A list of 1 MessageInABottle depending.
+              Case: messageId is not present.
+                A list of 0 or more MessageInABottle. The list will be empty if the
+                user has no MessageInABottle.
       operationId: getMessage
       tags:
         - mibs
@@ -21,7 +34,8 @@ paths:
             type: integer
       responses:
         '200':
-          description: A JSON array of all MessageInABottle for the user if no 
+          description: |
+            A JSON array of all MessageInABottle for the user if no 
             messageId is specified, otherwise if a messageId is specified, return 
             only the MessageInABottle that corresponds to that messageId.
           content:
@@ -38,6 +52,17 @@ paths:
   
     post:
       summary: Creates a message in a bottle for the user.
+      description: |
+        Persist a new a MessageInABottle for an authorized user.
+        
+            Precondition: 
+              - User is authorized. 
+                
+            Postconditon: 
+            - A MessageInABottle is created for the user with the 
+            supplied detailes and persisted in the database.
+            
+            Note: messageId will be ignored if present in the request body.
       operationId: createMessage
       tags:
         - mibs
@@ -58,6 +83,15 @@ paths:
 
     put:
       summary: Updates a message in a bottle for the user.
+      description: |
+        Persist changes to a MessageInABottle for an authorized user.
+        
+            Precondition: 
+              - User is authorized.
+              - A MessageInABottle with messageId exists for the user.
+                
+            Postconditon: The MessageInABottle with the messageId is updated 
+            to the supplied MessageInABottle in the request body.
       operationId: updateMessage
       tags:
         - mibs
@@ -79,9 +113,22 @@ paths:
           
     delete: 
       summary: Deletes message(s) in a bottle for the user.
-      description: Deletes a single MessageInABottle if the messageId is present,
-        otherwise if not messageId is present delete all MessageInABottle for 
-        the current user.
+      description: |
+        Deletes a single MessageInABottle or all MessageInABottles 
+        for an authorized user.
+        
+            Precondition: 
+              - User is authorized.
+              - If messageId is present then a MessageInABottle with messageId
+                must exist for the user.
+            
+            Postcondition: Deletes a single MessageInABottle or all 
+              MessageInABottles.
+              Case: messageId present.
+                Deletes a message MessageInABottle with messageId in the database.
+              Case: messageId is not present.
+                Deletes all MessageInABottles for the user.
+      
       operationId: deleteMessage
       tags:
         - mibs
