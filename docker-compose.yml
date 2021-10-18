@@ -15,7 +15,8 @@ services:
 
   web:
     build:
-      context: src/projects/web
+      context: src
+      dockerfile: projects/web/dockerfile
     expose:
       - 80
 
