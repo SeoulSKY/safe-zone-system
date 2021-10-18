@@ -2,19 +2,21 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
+    "lint": "eslint src/**/*.ts src/**/*.tsx --no-error-on-unmatched-pattern",
+    "test": "jest --detectOpenHandles --passWithNoTests",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "eject": "expo eject",
-    "lint": "eslint src/**/*.ts src/**/*.tsx",
-    "test": "jest --detectOpenHandles",
     "test-watch": "npm run test -- --watch"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.0.7",
     "@react-navigation/native": "^6.0.4",
+    "eslint-config-base": "file:../../tools/lint_conf/eslint-config-base",
     "expo": "~42.0.1",
     "expo-status-bar": "~1.0.4",
+    "jest-expo": "^42.1.0",
     "mibs": "file:../../lib/mibs/ts",
     "react": "16.13.1",
     "react-dom": "16.13.1",
@@ -35,17 +37,31 @@
     "@types/jest": "^27.0.2",
     "@types/react": "~16.9.35",
     "@types/react-native": "~0.63.2",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
     "babel-eslint": "^10.1.0",
-    "eslint": "^7.32.0",
-    "eslint-base": "file:../../tools/lint_conf/eslint-base",
-    "eslint-config": "^0.3.0",
+    "eslint": "^8.0.1",
     "eslint-config-google": "^0.14.0",
-    "eslint-plugin-react": "^7.26.1",
-    "eslint-plugin-react-native": "^3.11.0",
     "expo-cli": "^4.12.1",
     "jest-expo": "^42.1.0",
     "ts-node": "^10.3.0",
+    "react-test-renderer": "^17.0.2",
     "typescript": "~4.0.0"
   },
-  "private": true
+  "private": true,
+  "jest": {
+    "verbose": true,
+    "preset": "jest-expo",
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "**/*.{ts,tsx}",
+      "!**/coverage/**",
+      "!**/node_modules/**",
+      "!**/babel.config.js",
+      "!**/jest.setup.js"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)"
+    ]
+  }
 }
