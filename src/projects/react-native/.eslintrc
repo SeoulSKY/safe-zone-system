@@ -1,9 +1,24 @@
 {
     "env":{
         "browser": true,
-        "node": true
-    },
-    "plugins":["react-native"],
-    "extends":["plugin:react-native/all", "../../tools/lint_conf/eslint-base"],
-    "parser": "babel-eslint"
+        "node": true,
+        "es6": true
+      },
+      "plugins": ["@typescript-eslint"],
+      "extends":["eslint:recommended", "plugin:@typescript-eslint/recommended", "google"],
+    
+      "settings": {
+        "react": {
+          "version": "latest",
+          "source": "module"
+        }
+      },
+      "rules":{
+        "@typescript-eslint/explicit-module-boundary-types": "off"
+      },
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "requireConfigFile": false,
+      "sourceType": "module"
+    }
 }

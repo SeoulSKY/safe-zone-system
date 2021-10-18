@@ -1,6 +1,5 @@
 import Constants from 'expo-constants';
-import { Platform } from 'react-native';
+import {Platform} from 'react-native';
 
-export const safeZoneURI = Platform.select({ web: true, default: false }) 
-  ? 'localhost'
-  : Constants.manifest?.debuggerHost?.split(':')[0]
+export const safeZoneURI = Platform.select({web: true, default: false}) ?
+  'localhost' : Constants.manifest?.debuggerHost?.split(':')[0];

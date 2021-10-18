@@ -1,31 +1,33 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { Login } from '../components/Login';
-import { safeZoneURI } from '../common/constants';
-import { MibsApi } from 'mibs';
+import React, {ReactElement, useEffect, useState} from 'react';
+import {StyleSheet, Text, View} from 'react-native';
+import {Login} from '../components/Login';
+import {safeZoneURI} from '../common/constants';
 
+/**
+import { MibsApi } from 'mibs';
 const mibsApi = new MibsApi() // test mibs import
+**/
 
 /**
  * Home Screen
  * @method
- * @return {View}
+ * @return {ReactElement}
  */
-export default function HomeScreen() {
+export default function HomeScreen(): ReactElement {
   const [cmsText, setCmsText] = useState('No Response');
   const [mibsText, setMibsText] = useState('No Response');
 
   useEffect(() => {
     fetch(`http://${safeZoneURI}/cms/hello`, {method: 'GET'})
-      .then((response: Response) => response.text())
-      .then(setCmsText)
-      .catch((error: Error) => setCmsText(`Error: ${error.message}`))
+        .then((response: Response) => response.text())
+        .then(setCmsText)
+        .catch((error: Error) => setCmsText(`Error: ${error.message}`));
 
     fetch(`http://${safeZoneURI}/mibs/hello`, {method: 'GET'})
-      .then((response: Response) => response.text())
-      .then(setMibsText)
-      .catch((error: Error) => setMibsText(`Error: ${error.message}`))
-  }, [setCmsText, setMibsText])
+        .then((response: Response) => response.text())
+        .then(setMibsText)
+        .catch((error: Error) => setMibsText(`Error: ${error.message}`));
+  }, [setCmsText, setMibsText]);
 
   return (
     <View style={styles.container}>

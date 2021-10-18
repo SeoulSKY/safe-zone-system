@@ -1,10 +1,18 @@
 import React from 'react';
 
-import HomePage from './pages/HomePage'
+/**
+ * App.tsx
+ * @return
+ */
+import HomePage from './pages/HomePage';
 
+/**
+ * Home Page
+ * @return {ReactElement}
+ */
 function App() {
   return (
-      HomePage()
+    <HomePage/>
   );
 }
 
