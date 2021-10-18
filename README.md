@@ -18,6 +18,12 @@
     ```
     docker-compose up --build
     ```
+4. Navigate to http://localhost/auth/admin/
+5. Login to the admin account.
+  * Username: admin
+  * Password: cmpt371
+6. Hoverover `Master` In the top right hand corner and click `Add realm`.
+7. Import the `<project root>/src/projects/keycloak/safe-zone-realm.json` file.
 
 ### Starting Expo
 1. Ensure NodeJS 16 and Android Studio is installed. 
