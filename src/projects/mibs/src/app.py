@@ -4,6 +4,7 @@ Stub for MIBS system
 from flask import Flask, request
 import os
 from models import db, Message
+from api.mibs import mibs_blueprint
 
 app = Flask(__name__)
 
@@ -38,3 +39,6 @@ def db_test():
     return f'{Message.query.all()}'
   else:
     return 'No Get'
+
+
+app.register_blueprint(mibs_blueprint)
