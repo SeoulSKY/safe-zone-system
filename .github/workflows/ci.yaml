@@ -200,9 +200,11 @@ jobs:
     needs: [ python-job, react-native-job ]
     runs-on: ubuntu-latest
     env: 
-      project-path: 'src/projects'
+      src: 'src'
+      projects: 'projects'
+      
     strategy:
-      matrix: { dir: ['reverse-proxy', 'mibs', 'cms', 'keycloak', 'smtp-dev', 'postgres-dev'] }
+      matrix: { dir: ['reverse-proxy', 'mibs', 'cms', 'keycloak', 'smtp-dev', 'postgres-dev', 'web'] }
 
     permissions: 
       contents: read
@@ -212,10 +214,22 @@ jobs:
         uses: actions/checkout@v2
       
       - name: Build ${{matrix.path}} docker image
-        run: |
-            docker build --tag ${{matrix.dir}}:${GITHUB_REF##*/}-$(date +'%Y-%m-%d-T-%H-%M-%S') .
-        working-directory: ${{env.project-path}}/${{matrix.dir}}
-
+        run: | 
+         if [[ ${{matrix.dir}} == 'mibs' || ${{matrix.dir}} == 'cms' || ${{matrix.dir}} == 'web' ]] ; then
+           docker build --tag ghcr.io/universityofsaskatchewancmpt371/${{matrix.dir}}:latest --file ${{env.projects}}/${{matrix.dir}}/Dockerfile .
+         fi
+         exit 0
+        shell: bash
+        working-directory: ${{env.src}}
+        
+      - name: Build ${{matrix.path}} docker image
+        run: | 
+         if [[ ${{matrix.dir}} == 'reverse-proxy' || ${{matrix.dir}} == 'keycloak' || ${{matrix.dir}} == 'postgres-dev' || ${{matrix.dir}} == 'smtp-dev' ]] ; then
+           docker build --tag ghcr.io/universityofsaskatchewancmpt371/${{matrix.dir}}:latest --file ${{env.src}}/${{env.projects}}/${{matrix.dir}}/Dockerfile ./${{env.src}}/${{env.projects}}/${{matrix.dir}} 
+         fi
+         exit 0
+        shell: bash
+      
       - name: post job status to discord
         if: always()
         uses: sarisia/actions-status-discord@v1.8.6
@@ -302,3 +316,7 @@ jobs:
       #     status: ${{job.status}}
       #     description: |
       #       Click [here](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to view logs.
+      
+      
+      
+# working-directory: ${{env.project-path}}/${{matrix.dir}}

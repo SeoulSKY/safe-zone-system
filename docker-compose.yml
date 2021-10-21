@@ -16,19 +16,21 @@ services:
   web:
     build:
       context: src
-      dockerfile: projects/web/dockerfile
+      dockerfile: projects/web/Dockerfile
     expose:
       - 80
 
   cms:
     build:
-      context: src/projects/cms
+      context: src
+      dockerfile: projects/cms/Dockerfile
     expose:
       - 80
 
   mibs:
     build:
-      context: src/projects/mibs
+      context: src
+      dockerfile: projects/cms/Dockerfile
     environment:
       DB_DATABASE: mibs
       DB_USER: admin

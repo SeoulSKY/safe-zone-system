@@ -13,20 +13,20 @@ RUN openapi-generator-cli generate -i openapi.yml -g python-flask -o /app/openap
 
 FROM nginx:1.18-alpine
 
-RUN apk add --no-cache python3 py3-pip uwsgi-python3
+RUN apk add --no-cache python3 py3-pip uwsgi-python3 python3-dev g++ postgresql-dev
 
 WORKDIR /app
 
-COPY projects/cms/nginx.conf /etc/nginx/nginx.conf
+COPY projects/mibs/nginx.conf /etc/nginx/nginx.conf
 
-COPY projects/cms/uwsgi.ini ./
+COPY projects/mibs/uwsgi.ini ./
 
-COPY projects/cms/requirements.txt ./
+COPY projects/mibs/requirements.txt ./
 RUN pip3 install -r requirements.txt
 
-COPY  projects/cms/. ./ 
+COPY  projects/mibs/. ./ 
 
-COPY  projects/cms/entrypoint.sh /
+COPY  projects/mibs/entrypoint.sh /
 
 COPY --from=python-flask-modules /app/openapi_server /app/lib/
 
