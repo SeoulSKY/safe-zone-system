@@ -10,6 +10,7 @@ services:
     depends_on:
       - web
       - cms
+      - smpt
       - mibs
       - keycloak
 
@@ -26,6 +27,12 @@ services:
     expose:
       - 80
 
+  smpt:
+    build:
+      context: src/projects/smpt-dev
+    expose:
+      - 25
+
   mibs:
     build:
       context: src/projects/mibs
@@ -37,7 +44,7 @@ services:
       - postgres
     expose:
       - 80
-  
+
   postgres:
     build:
       context: src/projects/postgres-dev
@@ -62,10 +69,11 @@ services:
       DB_PASSWORD: password
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: cmpt371
-    depends_on: 
+    depends_on:
       - postgres
     expose:
       - 8080
+
 
 volumes:
   postgres_data:
