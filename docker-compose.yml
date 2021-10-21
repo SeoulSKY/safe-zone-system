@@ -6,6 +6,8 @@ services:
       context: src/projects/reverse-proxy
     ports:
       - 80:80
+    volumes:
+      - "./src/projects/reverse-proxy/certs:/etc/ssl/private"
     restart: always
     depends_on:
       - web
@@ -37,7 +39,7 @@ services:
       - postgres
     expose:
       - 80
-  
+
   postgres:
     build:
       context: src/projects/postgres-dev
@@ -62,7 +64,7 @@ services:
       DB_PASSWORD: password
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: cmpt371
-    depends_on: 
+    depends_on:
       - postgres
     expose:
       - 8080
