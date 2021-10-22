@@ -3,7 +3,7 @@ name: ci workflow
 on:
 
   push:
-    branches: [ master, ID*]
+    branches: [ master, ID* ]
   pull_request:
     branches: [ master, ID*]
 
@@ -196,12 +196,13 @@ jobs:
           description: |
             Click [here](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to view logs.
 
-  docker-image-build-job:
+  docker-image-build-and-publish-job:
     needs: [ python-job, react-native-job ]
     runs-on: ubuntu-latest
     env: 
       src: 'src'
       projects: 'projects'
+      REGISTRY: ghcr.io
       
     strategy:
       matrix: { dir: ['reverse-proxy', 'mibs', 'cms', 'keycloak', 'smtp-dev', 'postgres-dev', 'web'] }
@@ -213,19 +214,28 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v2
       
-      - name: Build ${{matrix.path}} docker image
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and publish ${{matrix.path}} docker image
         run: | 
          if [[ ${{matrix.dir}} == 'mibs' || ${{matrix.dir}} == 'cms' || ${{matrix.dir}} == 'web' ]] ; then
            docker build --tag ghcr.io/universityofsaskatchewancmpt371/${{matrix.dir}}:latest --file ${{env.projects}}/${{matrix.dir}}/Dockerfile .
+           docker push ghcr.io/universityofsaskatchewancmpt371/${{matrix.dir}}:latest
          fi
          exit 0
         shell: bash
         working-directory: ${{env.src}}
         
-      - name: Build ${{matrix.path}} docker image
+      - name: Build and publish ${{matrix.path}} docker image
         run: | 
          if [[ ${{matrix.dir}} == 'reverse-proxy' || ${{matrix.dir}} == 'keycloak' || ${{matrix.dir}} == 'postgres-dev' || ${{matrix.dir}} == 'smtp-dev' ]] ; then
-           docker build --tag ghcr.io/universityofsaskatchewancmpt371/${{matrix.dir}}:latest --file ${{env.src}}/${{env.projects}}/${{matrix.dir}}/Dockerfile ./${{env.src}}/${{env.projects}}/${{matrix.dir}} 
+           docker build --tag ghcr.io/universityofsaskatchewancmpt371/${{matrix.dir}}:latest --file ${{env.src}}/${{env.projects}}/${{matrix.dir}}/Dockerfile ./${{env.src}}/${{env.projects}}/${{matrix.dir}}
+           docker push ghcr.io/universityofsaskatchewancmpt371/${{matrix.dir}}:latest
          fi
          exit 0
         shell: bash
