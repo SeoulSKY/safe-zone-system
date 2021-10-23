@@ -21,14 +21,14 @@ COPY projects/cms/nginx.conf /etc/nginx/nginx.conf
 
 COPY projects/cms/uwsgi.ini ./
 
+COPY --from=python-flask-modules /app/openapi_server /app/lib/
+
 COPY projects/cms/requirements.txt ./
 RUN pip3 install -r requirements.txt
 
-COPY  projects/cms/. ./ 
+COPY projects/cms/. ./ 
 
-COPY  projects/cms/entrypoint.sh /
-
-COPY --from=python-flask-modules /app/openapi_server /app/lib/
+COPY projects/cms/entrypoint.sh /
 
 EXPOSE 80
 ENTRYPOINT ["/entrypoint.sh"]
