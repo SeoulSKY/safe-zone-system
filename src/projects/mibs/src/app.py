@@ -7,7 +7,6 @@ from models import db, Message
 from api.mibs import mibs_blueprint
 
 app = Flask(__name__)
-
 db_name = os.environ.get('DB_DATABASE')
 db_user = os.environ.get('DB_USER')
 db_pass = os.environ.get('DB_PASSWORD')
@@ -18,27 +17,24 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 with app.app_context():
-  db.create_all()
-
-
+    db.create_all()
 
 @app.route('/mibs/hello',methods=['POST','GET'])
 def info():
-  '''
-  Return message for GET request
-  '''
-  if request.method == 'GET':
-    return 'Hello from MIBS'
-  else:
-    return 'No Get'
+    '''
+    Return message for GET request
+    '''
+    if request.method == 'GET':
+        return 'Hello from MIBS'
+    else:
+        return 'No Get'
 
 
 @app.route('/mibs/db_test',methods=['POST','GET'])
 def db_test():
-  if request.method == 'GET':
-    return f'{Message.query.all()}'
-  else:
-    return 'No Get'
-
+    if request.method == 'GET':
+        return f'{Message.query.all()}'
+    else:
+        return 'No Get'
 
 app.register_blueprint(mibs_blueprint)

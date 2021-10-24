@@ -5,7 +5,7 @@ import {
   TokenResponse, useAuthRequest, useAutoDiscovery,
 } from 'expo-auth-session';
 import {Platform} from 'react-native';
-import {safeZoneURI} from '../common/constants';
+import {safeZoneURI} from '@/common/constants';
 
 WebBrowser.maybeCompleteAuthSession();
 const clientId = 'safe-zone';
