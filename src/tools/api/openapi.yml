@@ -76,6 +76,12 @@ paths:
       responses:
         '201':
           description: MessageInABottle was successfully created.
+          headers:
+            Location:
+              schema:
+                type: string
+              description: '/?messageId=\<new messageId>'
+                
         '400':
           description: Request body does not contain required parameters.
         '401':
@@ -159,7 +165,7 @@ components:
         recipients:
           type: array
           items:
-            oneOf:
+            anyOf:
               - $ref: '#/components/schemas/EmailRecipient'
               - $ref: '#/components/schemas/SmsRecipient'
               - $ref: '#/components/schemas/UserRecipient'
