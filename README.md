@@ -9,9 +9,10 @@
     * Pixel 5, API: 29 
 * [Docker](https://docs.docker.com/get-docker/)
 * [Docker Compose](https://docs.docker.com/compose/install/)
+* [Git LFS](https://git-lfs.github.com/)
 
 ### Starting Server
-1. Ensure Docker and Docker Compose are installed. 
+1. Ensure Docker, Docker Compose and Git LFS are installed. 
     * See [Environment](#Environment) for setup instructions.
 2. Nagivate to the root directory of the project (where the docker-compose.yml file is located).
 3. Execute the following command to build and start all docker containers.

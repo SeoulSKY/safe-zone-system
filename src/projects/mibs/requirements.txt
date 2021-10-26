@@ -3,3 +3,7 @@ python-dotenv
 requests
 Flask-SQLAlchemy
 psycopg2
+
+# swagger codegen dependencies
+connexion == 2.6.0
+python_dateutil == 2.6.0
