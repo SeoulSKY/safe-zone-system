@@ -1,7 +1,7 @@
 name: ci workflow
     
 on:
-
+  workflow_dispatch: 
   push:
     branches: [ master, ID*]
   pull_request:
