@@ -8,15 +8,16 @@ RUN pip3 install --upgrade pip
 
 WORKDIR /app
 
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY uwsgi.ini ./
+COPY /projects/mibs/nginx.conf /etc/nginx/nginx.conf
+COPY /projects/mibs/uwsgi.ini ./
 
-COPY requirements.txt ./
+COPY /projects/mibs/requirements.txt ./
 RUN pip3 install -r requirements.txt
 
-COPY . ./
+COPY /projects/mibs/. ./
+COPY /lib/flask-auth/auth /app/src/auth
 
-COPY entrypoint.sh /
+COPY /projects/mibs/entrypoint.sh /
 
 EXPOSE 80
 ENTRYPOINT ["/entrypoint.sh"]
