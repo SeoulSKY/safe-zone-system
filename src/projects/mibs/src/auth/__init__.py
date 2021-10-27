@@ -43,8 +43,8 @@ class Authenticator(object):
 
     self.issuer = app.config.get('AUTH_ISSUER')
     self.audience = app.config.get('AUTH_AUDIENCE')
-    self.jwks_uri = app.config.get('AUTH_JWKS_URI')
-
+    self.jwks_client = PyJWKClient(app.config.get('AUTH_JWKS_URI'))
+    
     @app.errorhandler(PyJWTError)
     def handle_pyjwt_error(error: PyJWTError):
       '''
@@ -84,8 +84,7 @@ class Authenticator(object):
       The route function that wrapped by require_auth
       '''
       token = get_access_token(request)
-      jwks_client = PyJWKClient(self.jwks_uri)
-      signing_key = jwks_client.get_signing_key_from_jwt(token)
+      signing_key = self.jwks_client.get_signing_key_from_jwt(token)
 
       data = decode(token, 
         signing_key.key, 
