@@ -2,9 +2,9 @@ from functools import wraps
 from typing import Union
 from flask import Flask, request, jsonify, _request_ctx_stack
 from requests import Request
-from auth.exceptions import AuthError
 from jwt import decode, PyJWKClient
-from jwt.exceptions import PyJWTError
+from jwt.exceptions import PyJWTError, InvalidTokenError
+from auth.exceptions import *
 
 
 class Authenticator(object):
@@ -22,7 +22,7 @@ class Authenticator(object):
 
   def __init__(self, app: Flask):
     '''
-    Initialize an access token authenticator for the given flask application.
+    Creates an access token authenticator for the given flask application.
 
     Args:
       app: The flask app
@@ -31,6 +31,10 @@ class Authenticator(object):
       AUTH_ISSUER in app.config
       AUTH_AUDIENCE in app.config
       AUTH_JWKS_URI in app.config
+
+    Post-conditions:
+      Registers error handler with app that catches authentication errors and
+      returns the an appropriate response.
     '''
     config_keys = app.config.keys()
     assert('AUTH_ISSUER' in config_keys)
@@ -41,43 +45,36 @@ class Authenticator(object):
     self.audience = app.config.get('AUTH_AUDIENCE')
     self.jwks_uri = app.config.get('AUTH_JWKS_URI')
 
-    @app.errorhandler(AuthError)
-    def handle_auth_error(error: AuthError):
-      '''
-      Returns a response based on an AuthError that has been raised. This
-      function is called whenever an AuthError is raised inside of the flask
-      app.
-      '''
-      response = jsonify(error.response)
-      response.status_code = error.status_code
-      return response
-
     @app.errorhandler(PyJWTError)
     def handle_pyjwt_error(error: PyJWTError):
       '''
-      Returns a response based on an PyJWTError that has been raised. This
-      function is called whenever an PyJWTError is raised inside of the flask
-      app.
+      Returns a response based on a PyJWTError that has been raised. This
+      function is called when PyJWTErrors are raised inside of app.
       '''
-      response = jsonify({'error': str(error)})
-      response.status_code = 401
-      return response
+      if (isinstance(error, InvalidTokenError)):
+        response = jsonify({
+          'error': 'invalid_token',
+          'error_description': str(error)
+        })
+        response.status_code = 401
+        return response
+      else:
+        response = jsonify(None)
+        response.status_code = 401
+        return response
 
 
-  def require_auth(self, func):
+  def require_token(self, func):
     '''
-    Requires that requests to the given route provide authentication via an
-    access token passed in the Authentication header.
+    Decorator that requires that requests to the decorated route provide
+    authentication via an access token passed in the Authentication header.
 
-    This decorator should be called after @app.route(), so that it can inherit
-    the request.
-
-    Pre-conditions:
-      this method is called after @Flask.route()
+    Args:
+      func: the function that require_token decorates
 
     Example:
       @app.route('/hello', methods=['POST','GET'])
-      @auth.require_auth()
+      @auth.require_auth
       def hello():
         return 'Hello World!'
     '''
@@ -96,6 +93,7 @@ class Authenticator(object):
         issuer=self.issuer,
         audience=self.audience,
       )
+      _request_ctx_stack.top.current_user = data
       return func(*args, **kwargs)
     return wrapped_route
 
@@ -106,16 +104,17 @@ def get_access_token(request: Request) -> str:
   request.
 
   Post-conditions:
-    Raises an AuthError if the request does not have an Authorization header.
+    Raises an MissingAuthError if the request does not have an 
+    Authorization header.
   '''
   auth = request.headers.get('Authorization', None)
   if (auth == None):
-      raise AuthError(401)
+      raise MissingAuthError()
 
-  return parse_token_from_header(auth)
+  return parse_token_from_auth(auth)
 
 
-def parse_token_from_header(authorization: str) -> str:
+def parse_token_from_auth(authorization: str) -> str:
   '''
   Parses an access token from a given Authorization header value. Note that 
   this function does not verify the token.
@@ -124,12 +123,12 @@ def parse_token_from_header(authorization: str) -> str:
     authorization != None
 
   Post-conditions:
-    Raises AuthError if the token cannot be parsed. Due to 
+    Raises MalformedAuthError if the token cannot be parsed.
   '''
   assert(authorization != None)
 
   parts = authorization.split()
   if len(parts) != 2 or parts[0] != 'Bearer':
-    raise AuthError(401)
+    raise MalformedAuthError()
   
   return parts[1]

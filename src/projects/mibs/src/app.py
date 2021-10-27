@@ -30,13 +30,12 @@ with app.app_context():
 
 
 @app.route('/mibs/hello',methods=['POST','GET'])
-@auth.require_auth
+@auth.require_token
 def info():
   '''
   Return message for GET request
   '''
   if request.method == 'GET':
-    print(request.headers['Authorization'])
     return 'Hello from MIBS'
   else:
     return 'No Get'
