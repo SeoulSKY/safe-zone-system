@@ -3,14 +3,14 @@
 '''
 
 from flask import Blueprint, json
+from ../models/__init__ import db
 
 mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
 
+
 @mibs_blueprint.route('', methods=['GET'])
 def get():
-    '''
-    TODO implement GET endpoint here
-    '''
+    id = request.args.get(messageId)
     return {
       'success': json.dumps(True),
       'message': 'Hello from GET /mibs',
@@ -47,4 +47,5 @@ def delete():
     return {
       'success': json.dumps(True),
       'message': 'Hello from DELETE /mibs',
+    }
     }
