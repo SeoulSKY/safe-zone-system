@@ -23,6 +23,6 @@
 
 DIR_PATH="$(dirname "$0")/../../"
 
-npx @openapitools/openapi-generator-cli generate -g python-flask \
+java -jar swagger-codegen-cli.jar generate -l python-flask \
   -i "${1:-$DIR_PATH/tools/api/openapi.yml}" \
-  -o "${2:-$DIR_PATH/lib/mibs/pf}"/openapi
+  -o "${2:-$DIR_PATH/lib/mibs/python}"/openapi

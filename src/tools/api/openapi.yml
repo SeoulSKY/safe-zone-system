@@ -163,6 +163,11 @@ components:
               - $ref: '#/components/schemas/EmailRecipient'
               - $ref: '#/components/schemas/SmsRecipient'
               - $ref: '#/components/schemas/UserRecipient'
+        sendTime: 
+          type: string
+          format: date-time
+          description: An ISO-8601 UTC date time string. 2021-10-26T03:14:51.657Z
+          
       required:
        - message
        - recipients

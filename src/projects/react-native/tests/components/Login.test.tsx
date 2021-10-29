@@ -1,8 +1,8 @@
 import React from "react";
 import '@testing-library/jest-native/extend-expect'
 import {fireEvent, render} from "@testing-library/react-native";
-import {Login} from "../../src/components/Login";
-import {useLogin} from '../../src/hooks/useLogin';
+import {Login} from "@/components/Login";
+import {useLogin} from '@/hooks/useLogin';
 
 jest.mock('../../src/hooks/useLogin', () => ({
   __esModule: true,

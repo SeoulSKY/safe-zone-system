@@ -1,7 +1,7 @@
 import React from 'react';
 import {renderHook} from '@testing-library/react-hooks';
-import {safeZoneURI} from '../../src/common/constants';
-import {useLogin} from '../../src/hooks/useLogin';
+import {safeZoneURI} from '@/common/constants';
+import {useLogin} from '@/hooks/useLogin';
 import {exchangeCodeAsync, makeRedirectUri, revokeAsync, useAuthRequest, useAutoDiscovery} from 'expo-auth-session';
 
 jest.useFakeTimers()

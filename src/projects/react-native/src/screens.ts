@@ -1,5 +1,5 @@
-import HomeScreen from './screens/HomeScreen';
-import MibScreen from './screens/MibScreen';
+import HomeScreen  from '@/screens/HomeScreen';
+import MibScreen from '@/screens/MibScreen';
 
 /**
  * Export the different screens so they can be easily imported into other
