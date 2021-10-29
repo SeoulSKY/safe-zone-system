@@ -3,8 +3,8 @@ Stub for MIBS system
 '''
 from flask import Flask, request
 import os
-from models import db, Message
-from api.mibs import mibs_blueprint
+from src.models import db, Message
+from src.api.mibs import mibs_blueprint
 
 app = Flask(__name__)
 db_name = os.environ.get('DB_DATABASE')
@@ -18,6 +18,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 with app.app_context():
     db.create_all()
+
 
 @app.route('/mibs/hello',methods=['POST','GET'])
 def info():
@@ -36,5 +37,6 @@ def db_test():
         return f'{Message.query.all()}'
     else:
         return 'No Get'
+
 
 app.register_blueprint(mibs_blueprint)

@@ -7,10 +7,17 @@ import unittest
 import re
 from urllib.parse import urlparse, parse_qs
 from dateutil.parser import parse as datetimeParse
-from api.mibs import mibs_blueprint, TEMP_USER_ID
-from models import Message, db
+from datetime import  datetime
+from api.mibs import mibs_blueprint, delete_mibs_for_user, TEMP_USER_ID
+from models import Message, EmailMessageRecipient, db
 from flask import Flask
 from http import HTTPStatus
+
+test_email = 'test@email.com'
+test_user_id = 'temp-user-id'
+test_other_user = 'other_user'
+test_message_id = 1
+test_message_id2 = 2
 
 
 class TestMibsApi(unittest.TestCase):
@@ -23,6 +30,7 @@ class TestMibsApi(unittest.TestCase):
         db.init_app(self.app)
         with self.app.app_context():
             db.create_all()
+            db.engine.execute('PRAGMA foreign_keys=ON')
         self.app.register_blueprint(mibs_blueprint)
 
         self.client = self.app.test_client()
@@ -99,9 +107,7 @@ class TestMibsApi(unittest.TestCase):
         '''
         Test POST /mibs when request body's recipients field container invalid recipients
         '''
-        test_email = 'test@email.com'
         test_phone_number = 'testPhoneNumber'
-        test_user_id = 'testUserId'
         test_invalid = 'testInvalid'
         self.test_message['recipients'] = [
             {'email': test_email},
@@ -207,6 +213,233 @@ class TestMibsApi(unittest.TestCase):
             self.assertEqual(message.email_recipients[1].email,
                 self.test_message['recipients'][1]['email'])
             self.assertFalse(message.email_recipients[1].sent)
+
+    def test_delete_mibs_for_user_all_no_mibs(self):
+        '''
+        Test delete_mibs_for_user when its used to delete all mibs when the user has no mibs
+        '''
+        with self.app.app_context():
+            self.assertFalse(delete_mibs_for_user(test_user_id, None))
+            self.assertEqual(None, Message.query.get(test_message_id))
+
+    def test_delete_mibs_for_user_all_no_mibs_but_another_user_has_a_mib(self):
+        '''
+        Test delete_mibs_for_user when its used to delete all mibs when the user has no mibs
+        but another user has a mib
+        '''
+        self.create_message(user_id=test_other_user)
+        with self.app.app_context():
+            self.assertFalse(delete_mibs_for_user(test_user_id, None))
+            self.assertNotEqual(None, Message.query.get(test_message_id))
+
+    def test_delete_mibs_for_user_all_one_mib(self):
+        '''
+        Test delete_mibs_for_user when its used to delete all mibs when the user has one mib
+        '''
+        self.create_message()
+        with self.app.app_context():
+            self.assertTrue(delete_mibs_for_user(test_user_id, None))
+            self.assertEqual(None, Message.query.get(test_message_id))
+
+    def test_delete_mibs_for_user_all_two_mibs(self):
+        '''
+        Test delete_mibs_for_user when its used to delete all mibs when the user has two mibs
+        '''
+        self.create_message()
+        self.create_message(message_id=test_message_id2)
+        with self.app.app_context():
+            self.assertTrue(delete_mibs_for_user(test_user_id, None))
+            self.assertEqual(None, Message.query.get(test_message_id))
+            self.assertEqual(None, Message.query.get(test_message_id2))
+
+    def test_delete_mibs_for_user_specific_no_mibs(self):
+        '''
+        Test delete_mibs_for_user when its used to delete a single mib when the user has no mibs
+        '''
+        with self.app.app_context():
+            self.assertFalse(delete_mibs_for_user(test_user_id, test_message_id))
+            self.assertEqual(None, Message.query.get(test_message_id))
+
+    def test_delete_mibs_for_user__specific_no_mibs_but_another_user_has_a_mib(self):
+        '''
+        Test delete_mibs_for_user when its used to delete a single mib when the user has no mibs
+        but another user has a mib
+        '''
+        self.create_message(user_id=test_other_user)
+        with self.app.app_context():
+            self.assertFalse(delete_mibs_for_user(test_user_id, test_message_id))
+            self.assertNotEqual(None, Message.query.get(test_message_id))
+
+    def test_delete_mibs_for_user_specific_one_mib(self):
+        '''
+        Test delete_mibs_for_user when its used to delete a single mib when the user has one mib
+        '''
+        self.create_message()
+        with self.app.app_context():
+            self.assertTrue(delete_mibs_for_user(test_user_id, test_message_id))
+            self.assertEqual(None, Message.query.get(test_message_id))
+
+    def test_delete_mibs_for_user_specific_two_mibs(self):
+        '''
+        Test delete_mibs_for_user when its used to delete a single mib when the user has two mibs
+        '''
+        self.create_message()
+        self.create_message(message_id=test_message_id2)
+        with self.app.app_context():
+            self.assertTrue(delete_mibs_for_user(test_user_id, test_message_id))
+            self.assertEqual(None, Message.query.get(test_message_id))
+            self.assertNotEqual(None, Message.query.get(test_message_id2))
+
+    def test_delete_all_no_mibs(self):
+        '''
+        Test DELETE /mibs to delete all mibs when user has no mibs
+        '''
+        with self.app.app_context():
+            response = self.client.delete('/mibs')
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_code)
+        self.assertEqual('Failed to delete all mibs: User does not have any mibs',
+                         response.get_data(as_text=True))
+        self.assertEqual(0, self.get_num_user_messages())
+
+    def test_delete_all_no_mibs_but_another_user_has_a_mib(self):
+        '''
+        Test DELETE /mibs to delete all mibs when user has no mibs but another user has a mib
+        '''
+        self.create_message(user_id=test_other_user)
+        with self.app.app_context():
+            response = self.client.delete('/mibs')
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_code)
+        self.assertEqual('Failed to delete all mibs: User does not have any mibs',
+                         response.get_data(as_text=True))
+        self.assertEqual(0, self.get_num_user_messages())
+        self.assertEqual(1, self.get_num_user_messages(test_other_user))
+
+    def test_delete_all_one_mib(self):
+        '''
+        Test DELETE /mibs to delete all mibs when user has one mib
+        '''
+        self.create_message()
+        with self.app.app_context():
+            response = self.client.delete('/mibs')
+        self.assertEqual(HTTPStatus.OK, response.status_code)
+        self.assertEqual('Successfully deleted all mibs',
+                         response.get_data(as_text=True))
+        self.assertEqual(0, self.get_num_user_messages())
+
+    def test_delete_all_two_mibs(self):
+        '''
+        Test DELETE /mibs to delete all mibs when user has two mibs
+        '''
+        self.create_message()
+        self.create_message(message_id=test_message_id2)
+        with self.app.app_context():
+            response = self.client.delete('/mibs')
+        self.assertEqual(HTTPStatus.OK, response.status_code)
+        self.assertEqual('Successfully deleted all mibs',
+                         response.get_data(as_text=True))
+        self.assertEqual(0, self.get_num_user_messages())
+
+    def test_delete_specific_no_mibs(self):
+        '''
+        Test DELETE /mibs to delete a specific mib when user has no mibs
+        '''
+        with self.app.app_context():
+            response = self.client.delete(f'/mibs?messageId={test_message_id}')
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_code)
+        self.assertEqual('Failed to delete mib with message id 1',
+                         response.get_data(as_text=True))
+        self.assertEqual(0, self.get_num_user_messages())
+
+    def test_delete_specific_no_mibs_but_another_user_has_a_mib(self):
+        '''
+        Test DELETE /mibs to delete a specific mib when user has no mibs but another user has a
+        mib
+        '''
+        self.create_message(user_id=test_other_user)
+        with self.app.app_context():
+            response = self.client.delete(f'/mibs?messageId={test_message_id}')
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_code)
+        self.assertEqual('Failed to delete mib with message id 1',
+                         response.get_data(as_text=True))
+        self.assertEqual(0, self.get_num_user_messages())
+        self.assertEqual(1, self.get_num_user_messages(test_other_user))
+
+    def test_delete_specific_mib_when_user_has_one_mib(self):
+        '''
+        Test DELETE /mibs to delete a specific mib when user has one mib
+        '''
+        self.create_message()
+        with self.app.app_context():
+            response = self.client.delete(f'/mibs?messageId={test_message_id}')
+        self.assertEqual(HTTPStatus.OK, response.status_code)
+        self.assertEqual('Successfully deleted mib with message id 1',
+                         response.get_data(as_text=True))
+        self.assertEqual(0, self.get_num_user_messages())
+
+    def test_delete_specific_mib_when_user_has_two_mibs(self):
+        '''
+        Test DELETE /mibs to delete a specific mib when user has two mibs
+        '''
+        self.create_message()
+        self.create_message(message_id=2)
+        with self.app.app_context():
+            response = self.client.delete(f'/mibs?messageId={test_message_id}')
+        self.assertEqual(HTTPStatus.OK, response.status_code)
+        self.assertEqual('Successfully deleted mib with message id 1',
+                         response.get_data(as_text=True))
+        self.assertEqual(1, self.get_num_user_messages())
+
+    def test_delete_mib_also_deletes_email_recipients(self):
+        '''
+        Test when deleting a mib, that any email recipients associated with the message are also
+        automatically deleted
+        '''
+        self.create_message()
+        with self.app.app_context():
+            self.create_email_recipient()
+            self.create_email_recipient(message_send_request_id=2)
+            delete_mibs_for_user(test_user_id, test_message_id)
+            self.assertEqual(None, EmailMessageRecipient.query.get(1))
+            self.assertEqual(None, EmailMessageRecipient.query.get(2))
+
+    def create_email_recipient(self,
+        message_send_request_id=1,
+        message_id=test_message_id,
+        email=test_email):
+        '''
+        Helper function to create and insert a email recipient in the database
+        '''
+        with self.app.app_context():
+            email_recipient = EmailMessageRecipient(message_send_request_id=message_send_request_id,
+                message_id=message_id,
+                email=email)
+            db.session.add(email_recipient)
+            db.session.commit()
+
+
+    def create_message(self,
+        message_id=test_message_id,
+        user_id=test_user_id,
+        message='test',
+        send_time=datetime.now()):
+        '''
+        Helper function to create and insert a message in the database
+        '''
+        with self.app.app_context():
+            new_message = Message(message_id=message_id,
+                user_id=user_id,
+                message=message,
+                send_time=send_time)
+            db.session.add(new_message)
+            db.session.commit()
+
+    def get_num_user_messages(self, user_id=test_user_id):
+        '''
+        Helper function to get the number of messages a user has in the database
+        '''
+        with self.app.app_context():
+            return db.session.query(Message).filter(Message.user_id == user_id).count()
+
 
 if __name__ == '__main__':
     unittest.main()
