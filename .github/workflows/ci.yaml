@@ -13,16 +13,28 @@ jobs:
       matrix: { dir: ['cms', 'mibs'] } 
     env:
         project-path: 'src/projects'
+        lib-path: ${{ github.workspace }}/src/lib
         cache-name: cache-requirements
         lint-file: ${{ github.workspace }}/'src/tools/lint_conf/pylintrc'
         ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts
+        api-scripts: ${{ github.workspace }}/src/tools/api
         artifact-name: artifact-${{github.job}}-${{matrix.dir}}
     steps:
       - name: checkout repo
         uses: actions/checkout@v2
+        with:
+          lfs: true
 
       - name: python setup
         uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: java setup
+        uses: actions/setup-java@v2
+        with:
+          distribution: adopt
+          java-version: 11
 
       - name: cache dependencies
         id: cache-step
@@ -55,14 +67,22 @@ jobs:
             python3 -m pylint --rcfile ${{env.lint-file}} test
         working-directory: ${{env.project-path}}/${{ matrix.dir }}
 
+      - name: generate python codegen from api file
+        run: |
+            bash ./gen_python_flask_api.sh
+        working-directory: ${{env.api-scripts}}
+
       - name: testing python projects
-        run: python -m unittest discover -s ./test
+        run: |
+            export PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/${{env.project-path}}/${{ matrix.dir }}/src:${{ github.workspace }}/src:${{env.lib-path}}:${{env.lib-path}}/mibs/python/openapi
+            python -m unittest discover
         working-directory: ${{env.project-path}}/${{ matrix.dir }}
 
       - name: run coverage
         run: |
           pip install coverage
-          coverage run -m unittest discover ./test
+          export PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/${{env.project-path}}/${{ matrix.dir }}/src:${{ github.workspace }}/src:${{env.lib-path}}:${{env.lib-path}}/mibs/python/openapi
+          coverage run -m unittest discover
         working-directory: ${{env.project-path}}/${{ matrix.dir }}
 
       - name: write job status to ci_status.json
