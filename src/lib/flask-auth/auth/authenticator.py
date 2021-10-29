@@ -37,9 +37,9 @@ class Authenticator(object):
       returns the an appropriate response.
     '''
     config_keys = app.config.keys()
-    assert('AUTH_ISSUER' in config_keys)
-    assert('AUTH_AUDIENCE' in config_keys)
-    assert('AUTH_JWKS_URI' in config_keys)
+    assert 'AUTH_ISSUER' in config_keys
+    assert 'AUTH_AUDIENCE' in config_keys
+    assert 'AUTH_JWKS_URI' in config_keys
 
     self.issuer = app.config.get('AUTH_ISSUER')
     self.audience = app.config.get('AUTH_AUDIENCE')

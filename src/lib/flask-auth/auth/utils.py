@@ -32,7 +32,7 @@ def parse_token_from_auth(authorization: str) -> str:
   Post-conditions:
     Raises MalformedAuthError if the token cannot be parsed.
   '''
-  assert(authorization != None)
+  assert authorization != None
 
   parts = authorization.split()
   if len(parts) != 2 or parts[0] != 'Bearer':
