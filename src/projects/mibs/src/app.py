@@ -4,7 +4,7 @@ Stub for MIBS system
 from flask import Flask, request
 from os import environ as env
 from models import db, Message
-from auth import Authenticator
+from auth import Authenticator, auth_token
 
 
 db_name = env.get('DB_DATABASE')
@@ -35,6 +35,7 @@ def info():
   '''
   Return message for GET request
   '''
+  print(auth_token)
   if request.method == 'GET':
     return 'Hello from MIBS'
   else:

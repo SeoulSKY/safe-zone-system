@@ -5,6 +5,13 @@ from jwt import decode, PyJWKClient
 from jwt.exceptions import PyJWTError, InvalidTokenError
 from auth.exceptions import *
 from auth.utils import get_access_token
+from werkzeug.local import LocalProxy
+
+
+# allows flask applications to access the auth token
+auth_token = LocalProxy(lambda: 
+  getattr(_request_ctx_stack.top, 'auth_token', None)
+)
 
 
 class Authenticator(object):
@@ -92,6 +99,6 @@ class Authenticator(object):
         issuer=self.issuer,
         audience=self.audience,
       )
-      _request_ctx_stack.top.current_user = data
+      _request_ctx_stack.top.auth_token = data
       return func(*args, **kwargs)
     return wrapped_route
