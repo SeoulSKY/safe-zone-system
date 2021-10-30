@@ -29,7 +29,7 @@ def get():
 
     # message_id is given
     else:
-        mib = Message.filter_by(user_id=1, message_id=id)
+        mib = Message.filter_by(user_id=1, message_id=id).all()
         # no mib matching id, return nothing
         if mib is None:
             return "Message not found", HTTPStatus.NOT_FOUND
