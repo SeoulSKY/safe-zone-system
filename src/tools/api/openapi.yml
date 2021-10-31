@@ -76,6 +76,12 @@ paths:
       responses:
         '201':
           description: MessageInABottle was successfully created.
+          headers:
+            Location:
+              schema:
+                type: string
+              description: '/?messageId=\<new messageId>'
+                
         '400':
           description: Request body does not contain required parameters.
         '401':
@@ -159,10 +165,15 @@ components:
         recipients:
           type: array
           items:
-            oneOf:
+            anyOf:
               - $ref: '#/components/schemas/EmailRecipient'
               - $ref: '#/components/schemas/SmsRecipient'
               - $ref: '#/components/schemas/UserRecipient'
+        sendTime: 
+          type: string
+          format: date-time
+          description: An ISO-8601 UTC date time string. 2021-10-26T03:14:51.657Z
+          
       required:
        - message
        - recipients
