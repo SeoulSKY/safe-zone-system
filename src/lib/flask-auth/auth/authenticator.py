@@ -1,6 +1,7 @@
 from functools import wraps
 from typing import Union
-from flask import Flask, request, jsonify, _request_ctx_stack
+from flask import Flask, request, _request_ctx_stack
+from urllib.error import HTTPError
 from jwt import decode, PyJWKClient
 from jwt.exceptions import PyJWTError, InvalidTokenError
 from auth.exceptions import *
@@ -41,7 +42,7 @@ class Authenticator(object):
 
     Post-conditions:
       Registers error handler with app that catches authentication errors and
-      returns the an appropriate response.
+      returns the appropriate response.
     '''
     config_keys = app.config.keys()
     assert 'AUTH_ISSUER' in config_keys
@@ -51,7 +52,7 @@ class Authenticator(object):
     self.issuer = app.config.get('AUTH_ISSUER')
     self.audience = app.config.get('AUTH_AUDIENCE')
     self.jwks_client = PyJWKClient(app.config.get('AUTH_JWKS_URI'))
-    
+
     @app.errorhandler(PyJWTError)
     def handle_pyjwt_error(error: PyJWTError):
       '''
@@ -59,16 +60,19 @@ class Authenticator(object):
       function is called when PyJWTErrors are raised inside of app.
       '''
       if (isinstance(error, InvalidTokenError)):
-        response = jsonify({
+        return {
           'error': 'invalid_token',
           'error_description': str(error)
-        })
-        response.status_code = 401
-        return response
+        }, 401      
       else:
-        response = jsonify(None)
-        response.status_code = 401
-        return response
+        return '', 401
+
+    @app.errorhandler(HTTPError)
+    def handle_connection_error(error: HTTPError):
+      return {
+          'error': 'connection_error',
+          'error_description': 'cannot connect to authentication provider'
+        }, 500
 
 
   def require_token(self, func):
