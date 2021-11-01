@@ -14,12 +14,12 @@ class AuthError(PyJWTError):
 
 class MissingAuthError(AuthError):
   '''
-  An authorization error due a missing Authorization header in the request.
+  An authorization error due to a missing Authorization header in the request.
   '''
   pass
 
 class MalformedAuthError(AuthError):
   '''
-  An authorization error due a malformed Authorization header in the request.
+  An authorization error due to a malformed Authorization header in the request.
   '''
   pass
