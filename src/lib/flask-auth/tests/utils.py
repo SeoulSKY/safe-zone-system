@@ -7,51 +7,57 @@ from auth.utils import *
 from auth.exceptions import *
 
 
-class TestUtils(unittest.TestCase):
+class TestGetAccessToken(unittest.TestCase):
   '''
-  The test cases for all the utility functions.
+  The test cases for the get_access_token function.
   '''
-
-  def test_parse_token_from_auth(self):
+  def valid_request(self):
     '''
-    Test the parse_token_from_auth() function.
+    Test Case: 
+      Request has an Authorization header with a valid value.
     '''
-    # case: valid authorization header string
-    self.assertEqual(parse_token_from_auth('Bearer asdf'), 'asdf')
-
-    # case: empty string
-    with self.assertRaises(MalformedAuthError):
-      parse_token_from_auth('')
-
-    # case: invalid header prefix
-    with self.assertRaises(MalformedAuthError):
-      parse_token_from_auth('Token asdf')
-
-    # case: violate !None precondition
-    with self.assertRaises(AssertionError):
-      parse_token_from_auth(None),
-
-
-  def test_get_access_token(self):
-    '''
-    Test the get_access_token() function
-    '''
-    # case: auth header, valid value
     self.assertEqual(
       get_access_token(Request(headers={'Authorization': 'Bearer asdf'})),
       'asdf'
     )
-    # case: no Auth header
-    with self.assertRaises(MissingAuthError):
-      get_access_token(Request())
+   
 
-    # case: auth header exits, None value
+  def no_auth_header_value(self):
+    '''
+    Test Case: 
+      Request has an Authorization header with a value of None.
+    '''
     with self.assertRaises(MissingAuthError):
       get_access_token(Request(headers={'Authorization': None}))
 
-    # case: auth header exists, invalid header prefix
+
+  def no_auth_header(self):
+    '''
+    Test Case: 
+      Request has no Authorization header.
+    '''
+    with self.assertRaises(MissingAuthError):
+      get_access_token(Request())
+
+
+  def invalid_header_prefix(self):
+    '''
+    Test Case: 
+      Request has an Authorization header with a value that contains an invalid
+      header prefix.
+    '''
     with self.assertRaises(MalformedAuthError):
       get_access_token(Request(headers={'Authorization': 'Token asdf'}))
+
+
+  def test_no_request(self):
+    '''
+    Test Case:
+      Request is None.
+    '''
+    with self.assertRaises(AssertionError):
+      get_access_token(None),
+
 
 
 if __name__ == '__main__':
