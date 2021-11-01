@@ -28,7 +28,8 @@ services:
 
   mibs:
     build:
-      context: src/projects/mibs
+      context: src
+      dockerfile: projects/mibs/dockerfile
     environment:
       DB_DATABASE: mibs
       DB_USER: admin
