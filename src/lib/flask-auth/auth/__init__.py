@@ -1,1 +1,1 @@
-from auth.authenticator import *
+from auth.authenticator import Authenticator, auth_token
