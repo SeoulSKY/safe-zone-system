@@ -1,9 +1,9 @@
 from functools import wraps
 from typing import Union
-from flask import Flask, request, _request_ctx_stack
-from urllib.error import HTTPError
+from flask import Flask, request, jsonify, _request_ctx_stack
+from urllib.error import URLError
 from jwt import decode, PyJWKClient
-from jwt.exceptions import PyJWTError, InvalidTokenError
+import jwt.exceptions as jwt_error
 from auth.exceptions import *
 from auth.utils import get_access_token
 from werkzeug.local import LocalProxy
@@ -36,6 +36,7 @@ class Authenticator(object):
       app: The flask app
 
     Pre-conditions:
+      app != None
       AUTH_ISSUER in app.config
       AUTH_AUDIENCE in app.config
       AUTH_JWKS_URI in app.config
@@ -44,6 +45,7 @@ class Authenticator(object):
       Registers error handler with app that catches authentication errors and
       returns the appropriate response.
     '''
+    assert app != None
     config_keys = app.config.keys()
     assert 'AUTH_ISSUER' in config_keys
     assert 'AUTH_AUDIENCE' in config_keys
@@ -53,26 +55,30 @@ class Authenticator(object):
     self.audience = app.config.get('AUTH_AUDIENCE')
     self.jwks_client = PyJWKClient(app.config.get('AUTH_JWKS_URI'))
 
-    @app.errorhandler(PyJWTError)
-    def handle_pyjwt_error(error: PyJWTError):
+    @app.errorhandler(AuthError)
+    def handle_pyjwt_error(e: AuthError):
       '''
-      Returns a response based on a PyJWTError that has been raised. This
-      function is called when PyJWTErrors are raised inside of app.
+      Returns a response based on an AuthError that has been raised. This
+      function is called when AuthError is raised inside of `app`.
       '''
-      if (isinstance(error, InvalidTokenError)):
-        return {
-          'error': 'invalid_token',
-          'error_description': str(error)
-        }, 401      
-      else:
-        return '', 401
+      body = None
+      www_auth = f'Bearer realm="{self.issuer}"'
+      if e.error and e.error_description:
+        body = {
+          'error': e.error, 
+          'error_description': e.error_description 
+        }
+        www_auth += f', error="{e.error}"' 
+        www_auth += f', error_description="{e.error_description}"'
 
-    @app.errorhandler(HTTPError)
-    def handle_connection_error(error: HTTPError):
+      return jsonify(body), e.status_code, {'WWW-Authenticate': www_auth}
+
+    @app.errorhandler(URLError)
+    def handle_connection_error(e: URLError):
       return {
           'error': 'connection_error',
           'error_description': 'cannot connect to authentication provider'
-        }, 500
+        }, HTTPStatus.INTERNAL_SERVER_ERROR
 
 
   def require_token(self, func):
@@ -95,14 +101,23 @@ class Authenticator(object):
       The route function that wrapped by require_auth
       '''
       token = get_access_token(request)
-      signing_key = self.jwks_client.get_signing_key_from_jwt(token)
+      try:
+        signing_key = self.jwks_client.get_signing_key_from_jwt(token)
+        data = decode(token, 
+          signing_key.key, 
+          algorithms=["RS256"],
+          issuer=self.issuer,
+          audience=self.audience,
+        )
+      except jwt_error.InvalidTokenError as error:
+        raise InvalidTokenError(str(error))
 
-      data = decode(token, 
-        signing_key.key, 
-        algorithms=["RS256"],
-        issuer=self.issuer,
-        audience=self.audience,
-      )
+      except jwt_error.PyJWKClientError as error:
+        raise InvalidTokenError('Key does not match provider')
+
+      except jwt_error.PyJWTError as error:
+        raise AuthError()
+
       _request_ctx_stack.top.auth_token = data
       return func(*args, **kwargs)
     return wrapped_route
