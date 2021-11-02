@@ -242,15 +242,6 @@ jobs:
          fi  
          exit 0
         shell: bash 
-        
-      - name: Set ID* 
-        id: id-version
-        run: |
-         if [[ ${{steps.branch.outputs.branch}} =~ [A][B][0-9]* ]]; then
-          echo ::set-output name=id-version::${{steps.branch.outputs.branch}}
-         fi
-         exit 0
-        shell: bash
       
       - name: Set working directory variables
         id: directory-vars
@@ -292,17 +283,17 @@ jobs:
         
       - name: Build and publish ${{matrix.path}} docker image for ID* branch
         run: | 
-         if [[ (${{steps.directory-vars.outputs.cms-mibs-web}} == ${{env.true}}) && (${{steps.branch.outputs.branch}} == ${{steps.id-version.outputs.id-version}}) ]]; then
-           docker build --tag ${{env.registry-owner-dir}}:${{steps.id-version.outputs.id-version}} --file ${{env.projects-dir}}/Dockerfile .
-           docker build --tag ${{env.registry-owner-dir}}:${{steps.id-version.outputs.id-version}}${{steps.date.outputs.date}} --file ${{env.projects-dir}}/Dockerfile .
-           docker push ${{env.registry-owner-dir}}:${{steps.id-version.outputs.id-version}}
-           docker push ${{env.registry-owner-dir}}:${{steps.id-version.outputs.id-version}}-${{steps.date.outputs.date}}       
+         if [[ (${{steps.directory-vars.outputs.cms-mibs-web}} == ${{env.true}}) && (${{steps.branch.outputs.branch}} =~ [I][D][0-9]*) ]]; then
+           docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}} --file ${{env.projects-dir}}/Dockerfile .
+           docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}${{steps.date.outputs.date}} --file ${{env.projects-dir}}/Dockerfile .
+           docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}
+           docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}-${{steps.date.outputs.date}}       
          fi
          if [[ (${{steps.directory-vars.outputs.reverse-proxy-keycloak-postgres-dev-smtp-dev}} == ${{env.true}}) && (${{steps.branch.outputs.branch}} == ${{steps.id-version.outputs.id-version}}) ]]; then
-           docker build --tag ${{env.registry-owner-dir}}:${{steps.id-version.outputs.id-version}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
-           docker build --tag ${{env.registry-owner-dir}}:${{steps.id-version.outputs.id-version}}-${{steps.date.outputs.date}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
-           docker push ${{env.registry-owner-dir}}:${{steps.id-version.outputs.id-version}}
-           docker push ${{env.registry-owner-dir}}:${{steps.id-version.outputs.id-version}}-${{steps.date.outputs.date}}       
+           docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
+           docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}-${{steps.date.outputs.date}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
+           docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}
+           docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}-${{steps.date.outputs.date}}       
          fi
          exit 0
         shell: bash
