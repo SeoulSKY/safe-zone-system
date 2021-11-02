@@ -283,7 +283,7 @@ jobs:
         
       - name: Build and publish ${{matrix.path}} docker image for ID* branch
         run: | 
-         if [[ (${{steps.directory-vars.outputs.cms-mibs-web}} == ${{env.true}}) && (${{steps.branch.outputs.branch}} =~ [I][D][0-9]*) ]]; then
+         if [[ (${{steps.directory-vars.outputs.cms-mibs-web}} == ${{env.true}}) && ${{steps.branch.outputs.branch}} =~ [I][D][0-9]* ]]; then
            docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}} --file ${{env.projects-dir}}/Dockerfile .
            docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}${{steps.date.outputs.date}} --file ${{env.projects-dir}}/Dockerfile .
            docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}
