@@ -3,7 +3,7 @@
 '''
 
 from typing import Any, Dict, List, Tuple, Union
-from flask import Blueprint, json, request
+from flask import Blueprint, json, request, jsonify
 from flask.helpers import url_for
 from dateutil.parser import parse as datetimeParse
 from http import HTTPStatus
@@ -19,23 +19,37 @@ mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
 
 TEMP_USER_ID = 'temp-user-id'
 
+
 @mibs_blueprint.route('', methods=['GET'])
 def get():
+    def serialize(mibs):
+        if len(mibs) == 0:
+            return []
+        messages = []
+        for m in mibs:
+            messages.append(MessageInABottle(message_id=m.message_id,
+                                             message=m.message,
+                                             recipients=m.email_recipients).to_dict())
+        return messages
+
     assert request is not None
-    id = request.args.get("messageId")
+    req = request.get_json()
 
     # if no message_id is given, retrieve all mibs for user
-    if id is None:
-        return json.dumps(Message.filter_by(user_id=1)), HTTPStatus.OK
+    if req["messageId"] is None:
+        return (jsonify(serialize(Message.query.filter_by(user_id=1).all())), HTTPStatus.OK)
 
     # message_id is given
     else:
-        mib = Message.filter_by(user_id=1, message_id=id).all()
-        # no mib matching id, return nothing
-        if mib is None:
-            return "Message not found", HTTPStatus.NOT_FOUND
+        mib = Message.query.filter_by(
+            user_id=1, message_id=req["messageId"]).all()
+
+        # if there's no message with the id, return NOT_FOUND
+        if len(mib) == 0:
+            status = HTTPStatus.NOT_FOUND
         else:
-            return json.dumps(mib), HTTPStatus.OK
+            status = HTTPStatus.OK
+        return (jsonify(serialize(mib)), status)
 
 
 @mibs_blueprint.route('', methods=['POST'])
@@ -59,8 +73,8 @@ def post():
         email_recipients, sms_recipients, user_recipients, unknown_recipients = \
             _parse_recipients(body['recipients'])
         if len(unknown_recipients) > 0:
-            return False, (f'Unknown recipient types: {json.dumps(unknown_recipients)}', \
-                HTTPStatus.BAD_REQUEST)
+            return False, (f'Unknown recipient types: {json.dumps(unknown_recipients)}',
+                           HTTPStatus.BAD_REQUEST)
 
         if len(email_recipients + sms_recipients + user_recipients) <= 0:
             return False, ('Must have atleast 1 recipient', HTTPStatus.BAD_REQUEST)
@@ -71,8 +85,8 @@ def post():
         try:
             datetimeParse(body['sendTime'])
         except ValueError:
-            return False, ('"sendTime" is not an ISO-8601 UTC date time string', \
-                HTTPStatus.BAD_REQUEST)
+            return False, ('"sendTime" is not an ISO-8601 UTC date time string',
+                           HTTPStatus.BAD_REQUEST)
 
         return True, (None, None)
 
@@ -105,8 +119,8 @@ def post():
         {'Location': url_for('.get', messageId=message.message_id)}
 
 
-def _parse_recipients(recipients: List[Union[AnyOfMessageInABottleRecipientsItems, \
-    Dict[str, Any]]]) -> Tuple[EmailRecipient, SmsRecipient, UserRecipient, Dict[str, Any]]:
+def _parse_recipients(recipients: List[Union[AnyOfMessageInABottleRecipientsItems,
+                                             Dict[str, Any]]]) -> Tuple[EmailRecipient, SmsRecipient, UserRecipient, Dict[str, Any]]:
     '''
     Parse a list recipeints in to their respective categories.
 
