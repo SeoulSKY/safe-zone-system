@@ -164,11 +164,64 @@ def put():
 
 
 @mibs_blueprint.route('', methods=['DELETE'])
+# TODO: add decorator
 def delete():
     '''
-    TODO implement DELETE endpoint here
+    /mibs DELETE endpoint. See openapi file.
     '''
-    return {
-      'success': json.dumps(True),
-      'message': 'Hello from DELETE /mibs',
-    }
+    assert request is not None
+    message_id_unparsed = request.args.get('messageId', None)
+
+    message_id = None if message_id_unparsed is None else int(message_id_unparsed)
+    user_id = TEMP_USER_ID
+
+    status_code = HTTPStatus.OK
+
+    if delete_mibs_for_user(user_id, message_id):
+        if message_id is None:
+            message = 'Successfully deleted all mibs'
+        else:
+            message = f'Successfully deleted mib with message id {message_id}'
+    else:
+        status_code = HTTPStatus.NOT_FOUND
+        if message_id is None:
+            message = 'Failed to delete all mibs: User does not have any mibs'
+        else:
+            message = f'Failed to delete mib with message id {message_id}'
+
+    return message, status_code
+
+
+def delete_mibs_for_user(user_id: str, message_id: Union[None, str] = None) -> bool:
+    '''
+    Deletes one or more messages in a bottle for a user from the database
+    Arguments:
+        user_id - the id of the user to delete the mibs for
+        message_id - an optional parameter for the id of the message
+    Preconditions:
+        message_id is None or an integer
+        user_id is not None,
+        user_id is a string
+        user_id is not an empty string
+    Postconditions:
+        If message_id is present, the message with that id will be deleted if it is present and
+        belongs to the user with user_id.
+        If message_id is absent, all messages for the the user with user_id will be deleted
+    Returns:
+        True if any messages were deleted, false otherwise
+    '''
+    assert message_id is None or isinstance(message_id, int)
+    assert user_id != ''
+    assert isinstance(user_id, str)
+    assert user_id is not None
+
+    query = Message.query.filter(Message.user_id == user_id)
+    if message_id is not None:
+        query = query.filter(Message.message_id == message_id)
+    count = query.count()
+    if count > 0:
+        query.delete()
+        db.session.commit()
+        return True
+    return False
+
