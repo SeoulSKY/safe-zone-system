@@ -37,12 +37,12 @@ def get():
 
     # if no message_id is given, retrieve all mibs for user
     if req["messageId"] is None:
-        return (jsonify(serialize(Message.query.filter_by(user_id=1).all())), HTTPStatus.OK)
+        return (jsonify(serialize(Message.query.filter_by(user_id=TEMP_USER_ID).all())), HTTPStatus.OK)
 
     # message_id is given
     else:
         mib = Message.query.filter_by(
-            user_id=1, message_id=req["messageId"]).all()
+            user_id=TEMP_USER_ID, message_id=req["messageId"]).all()
 
         # if there's no message with the id, return NOT_FOUND
         if len(mib) == 0:
@@ -172,7 +172,8 @@ def delete():
     assert request is not None
     message_id_unparsed = request.args.get('messageId', None)
 
-    message_id = None if message_id_unparsed is None else int(message_id_unparsed)
+    message_id = None if message_id_unparsed is None else int(
+        message_id_unparsed)
     user_id = TEMP_USER_ID
 
     status_code = HTTPStatus.OK
@@ -224,4 +225,3 @@ def delete_mibs_for_user(user_id: str, message_id: Union[None, str] = None) -> b
         db.session.commit()
         return True
     return False
-
