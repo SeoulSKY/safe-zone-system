@@ -3,4 +3,10 @@ python-dotenv
 requests
 Flask-SQLAlchemy
 psycopg2
+
+# auth dependencies
 pyjwt[crypto]
+
+# swagger codegen dependencies
+connexion == 2.6.0
+python_dateutil == 2.6.0

@@ -5,6 +5,7 @@ from flask import Flask, request
 from os import environ as env
 from models import db, Message
 from auth import Authenticator, auth_token
+from src.api.mibs import mibs_blueprint
 
 
 db_name = env.get('DB_DATABASE')
@@ -26,25 +27,26 @@ auth = Authenticator(app)
 
 db.init_app(app)
 with app.app_context():
-  db.create_all()
-
+    db.create_all()
 
 @app.route('/mibs/hello',methods=['POST','GET'])
 @auth.require_token
 def info():
-  '''
-  Return message for GET request
-  '''
-  print(auth_token)
-  if request.method == 'GET':
-    return 'Hello from MIBS'
-  else:
-    return 'No Get'
+    '''
+    Return message for GET request
+    '''
+    if request.method == 'GET':
+        return 'Hello from MIBS'
+    else:
+        return 'No Get'
 
 
 @app.route('/mibs/db_test',methods=['POST','GET'])
 def db_test():
-  if request.method == 'GET':
-    return f'{Message.query.all()}'
-  else:
-    return 'No Get'
+    if request.method == 'GET':
+        return f'{Message.query.all()}'
+    else:
+        return 'No Get'
+
+
+app.register_blueprint(mibs_blueprint)

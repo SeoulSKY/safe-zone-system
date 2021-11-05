@@ -1,6 +1,6 @@
 import React from 'react';
 import {Button} from 'react-native';
-import {useLogin} from '../hooks/useLogin'; // TODO set configuration
+import {useLogin} from '@/hooks/useLogin'; // TODO set configuration
 
 /**
  * A login button for the safe-zone keycloak server

@@ -1,41 +1,40 @@
 name: ci workflow
-    
 on:
-
+  workflow_dispatch: 
   push:
-    branches: [ master, ID*]
+    branches: [ master, ID*, ci-*]
   pull_request:
     branches: [ master, ID*]
 
 jobs:
-  preliminary-status-report-job:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Notify team that workflow has been triggered
-        uses: sarisia/actions-status-discord@v1.8.6
-        with: 
-          webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          noprefix: true
-          title: Workflow triggered
-          nofail: false
-
   python-job:
     runs-on: ubuntu-latest
-    needs: [preliminary-status-report-job]
     strategy:
       matrix: { dir: ['cms', 'mibs'] } 
     env:
         project-path: 'src/projects'
+        lib-path: ${{ github.workspace }}/src/lib
         cache-name: cache-requirements
         lint-file: ${{ github.workspace }}/'src/tools/lint_conf/pylintrc'
-    outputs:
-      status: ${{steps.get-status.outputs.status}}
+        ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts
+        api-scripts: ${{ github.workspace }}/src/tools/api
+        artifact-name: artifact-${{github.job}}-${{matrix.dir}}
     steps:
       - name: checkout repo
         uses: actions/checkout@v2
+        with:
+          lfs: true
 
       - name: python setup
         uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: java setup
+        uses: actions/setup-java@v2
+        with:
+          distribution: adopt
+          java-version: 11
 
       - name: cache dependencies
         id: cache-step
@@ -58,10 +57,8 @@ jobs:
             source env-dir/bin/activate
         working-directory: ${{env.project-path}}/${{ matrix.dir }}
         
-      - name: install and cache requirement dependencies
-        if: steps.cache-step.outputs.cache-hit != 'true'
-        run: |
-            pip install -r requirements.txt 
+      - name: install requirements
+        run: pip install -r requirements.txt 
         working-directory: ${{env.project-path}}/${{ matrix.dir }}
 
       - name: analyzing code with pylint
@@ -70,36 +67,47 @@ jobs:
             python3 -m pylint --rcfile ${{env.lint-file}} test
         working-directory: ${{env.project-path}}/${{ matrix.dir }}
 
+      - name: generate python codegen from api file
+        run: |
+            bash ./gen_python_flask_api.sh
+        working-directory: ${{env.api-scripts}}
+
       - name: testing python projects
-        run: python -m unittest discover -s ./test
+        run: |
+            export PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/${{env.project-path}}/${{ matrix.dir }}/src:${{ github.workspace }}/src:${{env.lib-path}}:${{env.lib-path}}/mibs/python/openapi
+            python -m unittest discover
         working-directory: ${{env.project-path}}/${{ matrix.dir }}
 
       - name: run coverage
         run: |
           pip install coverage
-          coverage run -m unittest discover ./test
+          export PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/${{env.project-path}}/${{ matrix.dir }}/src:${{ github.workspace }}/src:${{env.lib-path}}:${{env.lib-path}}/mibs/python/openapi
+          coverage run -m unittest discover
         working-directory: ${{env.project-path}}/${{ matrix.dir }}
 
-      - name: post job status to discord
-        if: always()
-        uses: sarisia/actions-status-discord@v1.8.6
-        with: 
-          webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          nocontext: true
-          title: ${{matrix.dir}} status report
-          status: ${{job.status}}
-          description: |
-            Click [here](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to view logs.
+      - name: write job status to ci_status.json
+        if: github.event_name == 'push'
+        run: |
+          bash ./post_job_status.sh ${{matrix.dir}} ${{job.status}} ${{github.job}} 
+        working-directory: ${{env.ci-scripts}}
+
+      - name: upload job status artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{env.artifact-name}}
+          path: ${{env.ci-scripts}}/ci_status.json
 
   react-native-job:
     runs-on: ubuntu-latest
-    needs: [preliminary-status-report-job]
     env:
       cache-name: cache-node-modules
       project-path: 'src/projects'
       dir: "react-native"
       node-version: 16
-      
+      ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts
+      artifact-name: artifact-${{github.job}}
+
     steps:
       - name: check out repository
         uses: actions/checkout@v2
@@ -127,7 +135,7 @@ jobs:
         working-directory: ${{env.project-path}}/${{env.dir}}
 
       - name: run build
-        run: npm run build --if-present # do what is specified in package.json file
+        run: npm run build --if-present
         working-directory: ${{env.project-path}}/${{env.dir}}
         
       - name: run lint
@@ -140,26 +148,30 @@ jobs:
         run: npm test
         working-directory: ${{env.project-path}}/${{env.dir}}
 
-      - name: post job status to discord
-        if: always()
-        uses: sarisia/actions-status-discord@v1.8.6
+      - name: write job status to ci_status.json
+        if: github.event_name == 'push'
+        run: |
+          chmod +x ./post_job_status.sh
+          bash ./post_job_status.sh ${{github.job}} ${{job.status}}  
+        working-directory: ${{env.ci-scripts}}
+
+      - name: upload job status artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v2
         with: 
-          webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          nocontext: true
-          title: ${{env.dir}} status report
-          status: ${{job.status}}
-          description: |
-            Click [here](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to view logs.
+          name: ${{env.artifact-name}}
+          path: ${{env.ci-scripts}}/ci_status.json
 
   web-job:
     runs-on: ubuntu-latest
-    needs: [preliminary-status-report-job]
     env:
       cache-name: cache-web-node-modules
       project-path: 'src/projects'
       dir: "web"
       node-version: 16
-    
+      ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts
+      artifact-name: artifact-${{github.job}}
+
     steps:
       - name: check out repository
         uses: actions/checkout@v2
@@ -185,47 +197,150 @@ jobs:
         run: npm test
         working-directory: ${{env.project-path}}/${{env.dir}}
 
-      - name: post job status to discord
-        if: always()
-        uses: sarisia/actions-status-discord@v1.8.6
+      - name: write job status to ci_status.json
+        if: github.event_name == 'push'
+        run: |
+          chmod +x ./post_job_status.sh
+          bash ./post_job_status.sh ${{github.job}} ${{job.status}}  
+        working-directory: ${{env.ci-scripts}}
+
+      - name: upload job status artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v2
         with: 
-          webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          nocontext: true
-          title: ${{env.dir}} status report
-          status: ${{job.status}}
-          description: |
-            Click [here](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to view logs.
+          name: ${{env.artifact-name}}
+          path: ${{env.ci-scripts}}/ci_status.json
 
-  docker-image-build-job:
-    needs: [ python-job, react-native-job ]
+  docker-job:
+    needs: [ python-job, react-native-job, web-job]
     runs-on: ubuntu-latest
-    env: 
-      project-path: 'src/projects'
     strategy:
-      matrix: { dir: ['reverse-proxy', 'mibs', 'cms', 'keycloak', 'smtp-dev', 'postgres-dev'] }
-
+      matrix: { dir: ['reverse-proxy', 'mibs', 'cms', 'keycloak', 'smtp-dev', 'postgres-dev', 'web'] }
+    env: 
+      src: 'src'
+      projects: 'projects'
+      ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts      
+      artifact-name: artifact-${{github.job}}-${{matrix.dir}}
     permissions: 
       contents: read
       packages: write 
     steps:
       - name: Check out repo
         uses: actions/checkout@v2
+        with:
+          lfs: true
       
       - name: Build ${{matrix.path}} docker image
-        run: |
-            docker build --tag ${{matrix.dir}}:${GITHUB_REF##*/}-$(date +'%Y-%m-%d-T-%H-%M-%S') .
-        working-directory: ${{env.project-path}}/${{matrix.dir}}
+        run: | 
+         if [[ ${{matrix.dir}} == 'mibs' || ${{matrix.dir}} == 'cms' || ${{matrix.dir}} == 'web' ]] ; then
+           docker build --tag ghcr.io/universityofsaskatchewancmpt371/${{matrix.dir}}:latest --file ${{env.projects}}/${{matrix.dir}}/Dockerfile .
+         fi
+         exit 0
+        shell: bash
+        working-directory: ${{env.src}}
+        
+      - name: Build ${{matrix.path}} docker image
+        run: | 
+         if [[ ${{matrix.dir}} == 'reverse-proxy' || ${{matrix.dir}} == 'keycloak' || ${{matrix.dir}} == 'postgres-dev' || ${{matrix.dir}} == 'smtp-dev' ]] ; then
+           docker build --tag ghcr.io/universityofsaskatchewancmpt371/${{matrix.dir}}:latest --file ${{env.src}}/${{env.projects}}/${{matrix.dir}}/Dockerfile ./${{env.src}}/${{env.projects}}/${{matrix.dir}} 
+         fi
+         exit 0
+        shell: bash
+      
+      - name: write job status to ci_status.json
+        if: github.event_name == 'push'
+        run: bash ./post_job_status.sh ${{matrix.dir}} ${{job.status}} ${{github.job}} 
+        working-directory: ${{env.ci-scripts}}
 
-      - name: post job status to discord
+      - name: upload job status artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v2
+        with: 
+          name: ${{env.artifact-name}}
+          path: ${{env.ci-scripts}}/ci_status.json
+
+  smoke-test:
+    needs: [ docker-job ]
+    runs-on: ubuntu-latest
+    env: 
+      ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts  
+      artifact-name: artifact-${{github.job}}
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+          
+      - name: run containers
+        run: docker-compose -f docker-compose.yml up -d --build
+        
+      - name: sleep for 30 seconds
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '30s'
+
+      - name: list running containers
+        run: docker ps
+        
+      - name: stop containers
+        if: always()
+        run: docker-compose -f docker-compose.yml down
+
+      - name: write job status to ci_status.json
+        if: github.event_name == 'push'
+        run: bash ./post_job_status.sh ${{github.job}} ${{job.status}} 
+        working-directory: ${{env.ci-scripts}}
+
+      - name: upload job status artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v2
+        with: 
+          name: ${{env.artifact-name}}
+          path: ${{env.ci-scripts}}/ci_status.json
+
+  publish-status-report-job:
+    if: github.event_name == 'push'
+    needs: [python-job, react-native-job, web-job, docker-job, smoke-test]
+    runs-on: ubuntu-latest
+    env: 
+      project-path: 'src/projects'
+      ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts      
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+
+      - name: download all artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: ${{env.ci-scripts}}
+
+      - name: get status report #echo report and set output
+        if: always()
+        id: report_gen
+        run: | 
+          echo -e $(bash ./status_report_gen.sh) > status.txt
+          echo "::set-output name=report::$(cat status.txt | head -n -1 | tr -d '"\r\n')"
+          echo "::set-output name=status::$(cat status.txt | tail -n 1)"
+        working-directory: ${{env.ci-scripts}}
+        
+      - name: print outputs #print outputs to log
+        if: always()
+        run: |
+          echo ${{steps.report_gen.outputs.status}}
+          echo ${{steps.report_gen.outputs.report}}
+
+      - name: post job status report to discord #publish to discord in md format
         if: always()
         uses: sarisia/actions-status-discord@v1.8.6
         with: 
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          nocontext: true
-          title: ${{matrix.dir}} image status report
-          status: ${{job.status}}
+          title: CI STATUS REPORT
+          status: ${{steps.report_gen.outputs.status}}
           description: |
-            Click [here](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to view logs.
+            ```
+            ${{steps.report_gen.outputs.report}}
+            ```
+            > Click [here](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to view logs.
 
 
 
@@ -235,37 +350,6 @@ jobs:
 
 
 
-
-
-
-
-
-
-  # publish-status-report-job:
-  #   if: always()
-  #   needs: [ python-job, react-native-job, docker-image-build-job ]
-  #   runs-on: ubuntu-latest
-  #   env: 
-  #     project-path: 'src/projects'
-  #     ci-scripts: ${{ github.workspace }}/'src/tools/ci/scripts'
-  #     python-job-stat: ${{needs.python-job.steps.get-status.outputs.status}}
-  #   steps:
-  #     - name: generate status report
-  #       run: |
-  #         chmod+x ${{env.ci-scripts}}/status-report-gen.sh
-  #         echo ::set-output name=description::$(${{env.ci-scripts}}/status-report-gen.sh)
-  #       id: report-gen
-
-  #     - name: post job status to discord
-  #       if: always()
-  #       uses: sarisia/actions-status-discord@v1.8.6
-  #       with: 
-  #         webhook: ${{ secrets.DISCORD_WEBHOOK }}
-  #         nocontext: true
-  #         title: Testing single report
-  #         status: ${{needs.python-job.steps.get-status.outputs.status}}
-  #         description: ${{steps.report-gen.outputs.description}}
-  #           Click [here](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to view logs.
 
       # - name: Generate python-flask modules
       #   run : |
@@ -302,3 +386,7 @@ jobs:
       #     status: ${{job.status}}
       #     description: |
       #       Click [here](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to view logs.
+      
+      
+      
+# working-directory: ${{env.project-path}}/${{matrix.dir}}

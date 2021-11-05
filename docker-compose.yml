@@ -16,20 +16,25 @@ services:
   web:
     build:
       context: src
-      dockerfile: projects/web/dockerfile
+      dockerfile: projects/web/Dockerfile
     expose:
       - 80
 
   cms:
     build:
-      context: src/projects/cms
+      context: src
+      dockerfile: projects/cms/Dockerfile
     expose:
       - 80
 
   mibs:
     build:
       context: src
+<<<<<<< HEAD
       dockerfile: projects/mibs/dockerfile
+=======
+      dockerfile: projects/mibs/Dockerfile
+>>>>>>> master
     environment:
       DB_DATABASE: mibs
       DB_USER: admin
@@ -61,8 +66,6 @@ services:
       DB_USER: admin
       DB_SCHEMA: public
       DB_PASSWORD: password
-      KEYCLOAK_USER: admin
-      KEYCLOAK_PASSWORD: cmpt371
     depends_on: 
       - postgres
     expose:
