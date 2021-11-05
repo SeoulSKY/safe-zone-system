@@ -30,11 +30,7 @@ services:
   mibs:
     build:
       context: src
-<<<<<<< HEAD
-      dockerfile: projects/mibs/dockerfile
-=======
       dockerfile: projects/mibs/Dockerfile
->>>>>>> master
     environment:
       DB_DATABASE: mibs
       DB_USER: admin
