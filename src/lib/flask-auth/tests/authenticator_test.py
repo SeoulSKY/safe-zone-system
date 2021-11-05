@@ -278,7 +278,7 @@ class TestAuthenticator(unittest.TestCase):
         '''
         with self.app.test_client() as client:
             response = client.get('/test/unprotected')
-            self.assertIsNotNone(response.data)
+            self.assertEqual(response.data, str(None).encode())
 
 
 if __name__ == '__main__':

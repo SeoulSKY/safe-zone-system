@@ -27,7 +27,7 @@ COPY projects/mibs/uwsgi.ini ./
 COPY --from=python-flask-modules /app/mibs/python/openapi /app/lib/mibs/python/openapi
 
 ENV PYTHONPATH="$PYTHONPATH:/app/lib/auth"
-COPY projects/lib/flask-auth /app/lib/auth
+COPY lib/flask-auth /app/lib/auth
 
 COPY projects/mibs/requirements.txt ./
 RUN pip3 install -r requirements.txt
