@@ -1,9 +1,6 @@
 import unittest, sys
 from requests import Request
-
-sys.path.append('../')
-
-from auth.utils import *
+from auth.utils import get_access_token
 from auth.exceptions import *
 
 
