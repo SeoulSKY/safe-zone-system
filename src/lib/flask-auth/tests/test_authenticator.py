@@ -1,15 +1,15 @@
-import unittest, time
-from flask import Flask, request, jsonify
+import unittest, time, jwt
+from unittest.mock import MagicMock
+from flask import Flask
 from auth import Authenticator, auth_token
 from http import HTTPStatus
-import jwt, json
-from jwt import PyJWKClient
-from mocks import MockJWKClient
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
 
 
+# Generate an RSA256 public/private key pair in order to self-sign tokens
+# for testing.
 private_key = rsa.generate_private_key(
     public_exponent=65537,
     key_size=2048,
@@ -110,9 +110,19 @@ class TestAuthenticator(unittest.TestCase):
             'TESTING': True,
             'AUTH_ISSUER': 'test_issuer',
             'AUTH_AUDIENCE': 'test',
-            'AUTH_JWKS_URI': 'http://auth_test:8080/test',
+            'AUTH_JWKS_URI': 'http://localhost/auth/jwks',
         })
         self.auth = Authenticator(self.app)
+
+        mock_signing_key = MagicMock()
+        mock_signing_key.key = public_pem
+
+        mock_jwk_client = MagicMock()
+        mock_jwk_client.get_signing_key_from_jwt = MagicMock(
+            return_value=mock_signing_key
+        )
+        self.auth.jwks_client = mock_jwk_client
+        
 
         @self.app.route('/test/protected', methods=['GET'])
         @self.auth.require_token
@@ -141,7 +151,7 @@ class TestAuthenticator(unittest.TestCase):
             algorithm='RS256', 
             headers=headers
         )
-        self.auth.jwks_client = PyJWKClient('http://localhost/auth/jwks')
+        self.auth.jwks_client = jwt.PyJWKClient('http://localhost/auth/jwks')
         with self.app.test_client() as client:
             response = client.get('/test/protected', headers={
                 'Authorization': 'Bearer ' + access_token
@@ -158,7 +168,6 @@ class TestAuthenticator(unittest.TestCase):
         Test that the require_auth decorator method handles requests with no
         Authorization header properly.
         '''
-        self.auth.jwks_client = MockJWKClient(None)
         with self.app.test_client() as client:
             response = client.get('/test/protected')
             self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
@@ -170,7 +179,6 @@ class TestAuthenticator(unittest.TestCase):
         Test that the require_auth decorator method handles invalid Authorization
         headers properly.
         '''
-        self.auth.jwks_client = MockJWKClient(None)
         with self.app.test_client() as client:
             response = client.get('/test/protected', headers={
                 'Authorization': 'Code asdfghjkl'
@@ -195,7 +203,6 @@ class TestAuthenticator(unittest.TestCase):
             algorithm='RS256', 
             headers=headers
         )
-        self.auth.jwks_client = MockJWKClient(public_pem)
         with self.app.test_client() as client:
             response = client.get('/test/protected', headers={
                 'Authorization': 'Bearer ' + access_token
@@ -220,7 +227,6 @@ class TestAuthenticator(unittest.TestCase):
             algorithm='RS256', 
             headers=headers
         )
-        self.auth.jwks_client = MockJWKClient(public_pem)
         with self.app.test_client() as client:
             response = client.get('/test/protected', headers={
                 'Authorization': 'Bearer ' + access_token
@@ -245,7 +251,6 @@ class TestAuthenticator(unittest.TestCase):
             'DvoXQ5oqygTqVtxaDr6wUFKrKItgBMzWIdNZ6y7O9E0DhEPTbE9rfBo6KTFsHAZnM'
             'g4k68CDp2woYIaXbmYTWcvbzIuHO7_37GT79XdIwkm95QJ7hYC9RiwrV7mesbY4PA'
             'ahERJawntho0my942XheVLmGwLMBkQ')
-        self.auth.jwks_client = MockJWKClient(public_pem)
         with self.app.test_client() as client:
             response = client.get('/test/protected', headers={
                 'Authorization': 'Bearer ' + access_token
@@ -270,7 +275,6 @@ class TestAuthenticator(unittest.TestCase):
             algorithm='RS256', 
             headers=headers
         )
-        self.auth.jwks_client = MockJWKClient(public_pem)
         with self.app.test_client() as client:
             response = client.get('/test/protected', headers={
                 'Authorization': 'Bearer ' + access_token
