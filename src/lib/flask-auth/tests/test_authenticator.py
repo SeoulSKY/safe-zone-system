@@ -176,8 +176,8 @@ class TestAuthenticator(unittest.TestCase):
 
     def test_require_auth_invalid_auth_header(self):
         '''
-        Test that the require_auth decorator method handles invalid Authorization
-        headers properly.
+        Test that the require_auth decorator method handles invalid 
+        Authorization headers properly.
         '''
         with self.app.test_client() as client:
             response = client.get('/test/protected', headers={
@@ -189,8 +189,8 @@ class TestAuthenticator(unittest.TestCase):
 
     def test_require_auth_invalid_token_expired(self):
         '''
-        Test that the require_auth decorator method handles requests sent with an
-        access token that has expired.
+        Test that the require_auth decorator method handles requests sent with
+        an access token that has expired.
         '''
         headers = {'alg': 'RS256', 'typ': 'JWT', 'kid': '0'}
         payload = {
@@ -261,8 +261,8 @@ class TestAuthenticator(unittest.TestCase):
 
     def test_require_auth_valid_token(self):
         '''
-        Test that the require_auth decorator method allows the decorated route to
-        be accessed.
+        Test that the require_auth decorator method allows the decorated route
+        to be accessed.
         '''
         headers = {'alg': 'RS256', 'typ': 'JWT', 'kid': '0'}
         payload = {

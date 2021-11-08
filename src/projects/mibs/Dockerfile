@@ -13,7 +13,7 @@ RUN /app/gen_python_flask_api.sh /app/openapi.yml /app/mibs/python
 
 FROM nginx:1.18-alpine
 
-RUN apk add --no-cache python3 py3-pip uwsgi-python3 python3-dev g++ postgresql-dev\
+RUN apk add --no-cache python3 py3-pip uwsgi-python3 python3-dev g++ postgresql-dev \
     musl-dev libffi-dev openssl-dev cargo
 
 RUN pip3 install --upgrade pip
