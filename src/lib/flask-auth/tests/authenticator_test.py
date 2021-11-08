@@ -40,19 +40,24 @@ class TestAuthenticatorInit(unittest.TestCase):
             Authenticator(None)
 
 
-    def test_init_invalid_config(self):
+    def test_no_issuer_provided(self):
         '''
-        Test that Authenticator asserts that app contains the correct config.
+        Test the assertion that there must be `ISSUER` in the app config.
         '''
         app = Flask(__name__)
         app.config.update({
             'TESTING': True,
-            'AUTH_ISSUER': 'test_issuer',
             'AUTH_AUDIENCE': 'test',
+            'AUTH_JWKS_URI': 'http://localhost/test/jwks',
         })
         with self.assertRaises(AssertionError):
             Authenticator(app)
 
+
+    def test_no_audience_provided(self):
+        '''
+        Test the assertion that there must be `AUDIENCE` in the app config.
+        '''
         app = Flask(__name__)
         app.config.update({
             'TESTING': True,
@@ -62,11 +67,16 @@ class TestAuthenticatorInit(unittest.TestCase):
         with self.assertRaises(AssertionError):
             Authenticator(app)
 
+
+    def test_no_jwks_uri_provided(self):
+        '''
+        Test the assertion that there must be `JWKS_URI` in the app config.
+        '''
         app = Flask(__name__)
         app.config.update({
             'TESTING': True,
+            'AUTH_ISSUER': 'test_issuer',
             'AUTH_AUDIENCE': 'test',
-            'AUTH_JWKS_URI': 'http://localhost/test/jwks',
         })
         with self.assertRaises(AssertionError):
             Authenticator(app)
