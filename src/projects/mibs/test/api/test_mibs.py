@@ -35,11 +35,22 @@ class TestMibsApi(unittest.TestCase):
 
         self.client = self.app.test_client()
 
-        self.test_message = {
+        self.test_post_message = {
             'message': 'test message',
             'recipients': [
             {
                 'email': 'test@email.com'
+            }
+            ],
+            'sendTime': '2021-10-27T23:22:19.911Z'
+        }
+
+        self.test_put_message = {
+            'messageId': 1,
+            'message': 'new test message',
+            'recipients': [
+            {
+                'email': 'new.test@email.com'
             }
             ],
             'sendTime': '2021-10-27T23:22:19.911Z'
@@ -58,7 +69,7 @@ class TestMibsApi(unittest.TestCase):
         response = self.client.post(
             '/mibs',
             content_type='application/x-www-form-urlencoded',
-            json=self.test_message
+            json=self.test_post_message
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -68,10 +79,10 @@ class TestMibsApi(unittest.TestCase):
         '''
         Test POST /mibs when request body is missing field "message"
         '''
-        self.test_message.pop('message')
+        self.test_post_message.pop('message')
         response = self.client.post(
             '/mibs',
-            json=self.test_message
+            json=self.test_post_message
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -81,10 +92,10 @@ class TestMibsApi(unittest.TestCase):
         '''
         Test POST /mibs when request body is missing field "recipients"
         '''
-        self.test_message.pop('recipients')
+        self.test_post_message.pop('recipients')
         response = self.client.post(
             '/mibs',
-            json=self.test_message
+            json=self.test_post_message
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -94,10 +105,10 @@ class TestMibsApi(unittest.TestCase):
         '''
         Test POST /mibs when request body's recipients field is an empty array
         '''
-        self.test_message['recipients'] = []
+        self.test_post_message['recipients'] = []
         response = self.client.post(
             '/mibs',
-            json=self.test_message
+            json=self.test_post_message
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -109,7 +120,7 @@ class TestMibsApi(unittest.TestCase):
         '''
         test_phone_number = 'testPhoneNumber'
         test_invalid = 'testInvalid'
-        self.test_message['recipients'] = [
+        self.test_post_message['recipients'] = [
             {'email': test_email},
             {'phoneNumber': test_phone_number},
             {'userId': test_user_id},
@@ -117,7 +128,7 @@ class TestMibsApi(unittest.TestCase):
         ]
         response = self.client.post(
             '/mibs',
-            json=self.test_message
+            json=self.test_post_message
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -130,10 +141,10 @@ class TestMibsApi(unittest.TestCase):
         '''
         Test POST /mibs when request body is missing field "sendTime"
         '''
-        self.test_message.pop('sendTime')
+        self.test_post_message.pop('sendTime')
         response = self.client.post(
             '/mibs',
-            json=self.test_message
+            json=self.test_post_message
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -143,10 +154,10 @@ class TestMibsApi(unittest.TestCase):
         '''
         Test POST /mibs when request body's sendTime field is not an ISO-8601 datetime
         '''
-        self.test_message['sendTime'] = '2021-10-27T23:22:19.911Za'
+        self.test_post_message['sendTime'] = '2021-10-27T23:22:19.911Za'
         response = self.client.post(
             '/mibs',
-            json=self.test_message
+            json=self.test_post_message
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -158,7 +169,7 @@ class TestMibsApi(unittest.TestCase):
         '''
         response = self.client.post(
             '/mibs',
-            json=self.test_message
+            json=self.test_post_message
         )
 
         self.assertEqual(response.status_code, HTTPStatus.CREATED)
@@ -173,16 +184,16 @@ class TestMibsApi(unittest.TestCase):
 
             self.assertEqual(message.message_id, message_id)
             self.assertEqual(message.user_id, TEMP_USER_ID)
-            self.assertEqual(message.message, self.test_message['message'])
+            self.assertEqual(message.message, self.test_post_message['message'])
             self.assertFalse(message.sent)
             self.assertIsNone(message.last_sent_time)
             self.assertEqual(message.send_time,
-                datetimeParse(self.test_message['sendTime']).replace(tzinfo=None))
+                datetimeParse(self.test_post_message['sendTime']).replace(tzinfo=None))
 
             self.assertFalse(message.sent)
             self.assertEqual(len(message.email_recipients), 1)
             self.assertEqual(message.email_recipients[0].email,
-                self.test_message['recipients'][0]['email'])
+                self.test_post_message['recipients'][0]['email'])
             self.assertFalse(message.email_recipients[0].sent)
             self.assertIsNone(message.email_recipients[0].send_attempt_time)
 
@@ -190,13 +201,13 @@ class TestMibsApi(unittest.TestCase):
         '''
         Test POST /mibs when request is successful with more than one recipient
         '''
-        self.test_message['recipients'] = [
+        self.test_post_message['recipients'] = [
             {'email': 'test1@email.com'},
             {'email': 'test2@email.com'}
         ]
         response = self.client.post(
             '/mibs',
-            json=self.test_message
+            json=self.test_post_message
         )
 
         self.assertEqual(response.status_code, HTTPStatus.CREATED)
@@ -208,11 +219,272 @@ class TestMibsApi(unittest.TestCase):
 
             self.assertEqual(len(message.email_recipients), 2)
             self.assertEqual(message.email_recipients[0].email,
-                self.test_message['recipients'][0]['email'])
+                self.test_post_message['recipients'][0]['email'])
             self.assertFalse(message.email_recipients[0].sent)
             self.assertEqual(message.email_recipients[1].email,
-                self.test_message['recipients'][1]['email'])
+                self.test_post_message['recipients'][1]['email'])
             self.assertFalse(message.email_recipients[1].sent)
+
+    def test_put_not_json(self):
+        '''
+        Test PUT /mibs when content type is not application/json
+        '''
+        response = self.client.put(
+            '/mibs',
+            content_type='application/x-www-form-urlencoded',
+            json=self.test_put_message
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, b'Request is not JSON')
+
+    def test_put_missing_message_id(self):
+        '''
+        Test PUT /mibs when request body is missing field "message"
+        '''
+        self.test_put_message.pop('messageId')
+        response = self.client.put(
+            '/mibs',
+            json=self.test_put_message
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, b'"messageId" missing from request body')
+
+    def test_put_missing_message(self):
+        '''
+        Test PUT /mibs when request body is missing field "message"
+        '''
+        self.test_put_message.pop('message')
+        response = self.client.put(
+            '/mibs',
+            json=self.test_put_message
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, b'"message" missing from request body')
+
+    def test_put_missing_recipients(self):
+        '''
+        Test PUT /mibs when request body is missing field "recipients"
+        '''
+        self.test_put_message.pop('recipients')
+        response = self.client.put(
+            '/mibs',
+            json=self.test_put_message
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, b'"recipients" missing from request body')
+
+    def test_put_empty_recipients(self):
+        '''
+        Test PUT /mibs when request body's recipients field is an empty array
+        '''
+        self.test_put_message['recipients'] = []
+        response = self.client.put(
+            '/mibs',
+            json=self.test_put_message
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, b'Must have atleast 1 recipient')
+
+    def test_put_invalid_recipients(self):
+        '''
+        Test PUT /mibs when request body's recipients field container invalid recipients
+        '''
+        test_phone_number = 'testPhoneNumber'
+        test_invalid = 'testInvalid'
+        self.test_put_message['recipients'] = [
+            {'email': test_email},
+            {'phoneNumber': test_phone_number},
+            {'userId': test_user_id},
+            {'invalid': test_invalid},
+        ]
+        response = self.client.put(
+            '/mibs',
+            json=self.test_put_message
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertNotIn(test_email.encode(), response.data)
+        self.assertIn(test_phone_number.encode(), response.data)
+        self.assertIn(test_user_id.encode(), response.data)
+        self.assertIn(test_invalid.encode(), response.data)
+
+    def test_put_missing_send_time(self):
+        '''
+        Test PUT /mibs when request body is missing field "sendTime"
+        '''
+        self.test_put_message.pop('sendTime')
+        response = self.client.put(
+            '/mibs',
+            json=self.test_put_message
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, b'"sendTime" missing from request body')
+
+    def test_put_invalid_send_time(self):
+        '''
+        Test PUT /mibs when request body's sendTime field is not an ISO-8601 datetime
+        '''
+        self.test_put_message['sendTime'] = '2021-10-27T23:22:19.911Za'
+        response = self.client.put(
+            '/mibs',
+            json=self.test_put_message
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, b'"sendTime" is not an ISO-8601 UTC date time string')
+
+    def test_put_no_message_in_database(self):
+        '''
+        Test PUT /mibs when the messageId does not exist in the database
+        '''
+        response = self.client.put(
+            '/mibs',
+            json=self.test_put_message
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, b'a message with messageId=1 could not be found')
+
+    def test_put_message_already_sent(self):
+        '''
+        Test PUT /mibs when the sent column of the message is True
+        '''
+
+        with self.app.app_context():
+            db.session.add(Message(
+                message_id=self.test_put_message['messageId'],
+                user_id=test_user_id,
+                message=self.test_put_message['message'],
+                send_time=datetime.now(),
+                sent=True
+            ))
+            db.session.commit()
+
+        response = self.client.put(
+            '/mibs',
+            json=self.test_put_message
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, b'message already sent')
+
+    def test_put_message_already_partialy_sent(self):
+        '''
+        Test PUT /mibs when the lastSentTime of the message is set
+        '''
+        with self.app.app_context():
+            db.session.add(Message(
+                message_id=self.test_put_message['messageId'],
+                user_id=test_user_id,
+                message=self.test_put_message['message'],
+                send_time=datetime.now(),
+                last_sent_time=datetime.now()
+            ))
+            db.session.commit()
+
+        response = self.client.put(
+            '/mibs',
+            json=self.test_put_message
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, b'message already sent')
+
+    def test_put_success(self):
+        '''
+        Test PUT /mibs when request is successful
+        '''
+
+        self.create_message()
+
+        response = self.client.put(
+            '/mibs',
+            json=self.test_put_message
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertNotIn('Location', response.headers)
+        self.assertEqual(response.data, b'MessageInABottle was successfully updated')
+
+        with self.app.app_context():
+            message = Message.query.get(self.test_put_message['messageId'])
+
+            self.assertEqual(message.message_id, self.test_put_message['messageId'])
+            self.assertEqual(message.user_id, TEMP_USER_ID)
+            self.assertEqual(message.message, self.test_put_message['message'])
+            self.assertFalse(message.sent)
+            self.assertIsNone(message.last_sent_time)
+            self.assertEqual(message.send_time,
+                datetimeParse(self.test_put_message['sendTime']).replace(tzinfo=None))
+
+            self.assertFalse(message.sent)
+            self.assertEqual(len(message.email_recipients), 1)
+            self.assertEqual(message.email_recipients[0].email,
+                self.test_put_message['recipients'][0]['email'])
+            self.assertFalse(message.email_recipients[0].sent)
+            self.assertIsNone(message.email_recipients[0].send_attempt_time)
+
+    def test_put_success_add_recipients(self):
+        '''
+        Test POST /mibs when request is successful when adding a recipient
+        '''
+
+        self.create_message()
+
+        self.test_put_message['recipients'] = [
+            {'email': 'test1@email.com'},
+            {'email': 'test2@email.com'}
+        ]
+        response = self.client.put(
+            '/mibs',
+            json=self.test_put_message
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+        with self.app.app_context():
+            message = Message.query.get(self.test_put_message['messageId'])
+
+            self.assertEqual(len(message.email_recipients), 2)
+            self.assertEqual(message.email_recipients[0].email,
+                self.test_put_message['recipients'][0]['email'])
+            self.assertFalse(message.email_recipients[0].sent)
+            self.assertEqual(message.email_recipients[1].email,
+                self.test_put_message['recipients'][1]['email'])
+            self.assertFalse(message.email_recipients[1].sent)
+
+    def test_put_success_remove_recipients(self):
+        '''
+        Test POST /mibs when request is successful when removing a recipient
+        '''
+
+        self.create_message()
+        self.create_email_recipient(
+            message_send_request_id=1,
+            email=self.test_put_message['recipients'][0]['email']
+        )
+        self.create_email_recipient(message_send_request_id=2)
+
+        response = self.client.put(
+            '/mibs',
+            json=self.test_put_message
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+        with self.app.app_context():
+            message = Message.query.get(self.test_put_message['messageId'])
+
+            self.assertEqual(len(message.email_recipients), 1)
+            self.assertEqual(message.email_recipients[0].email,
+                self.test_put_message['recipients'][0]['email'])
+            self.assertFalse(message.email_recipients[0].sent)
 
     def test_delete_mibs_for_user_all_no_mibs(self):
         '''
