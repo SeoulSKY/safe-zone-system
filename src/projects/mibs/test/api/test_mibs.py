@@ -161,7 +161,7 @@ class TestMibsApi(unittest.TestCase):
             json=self.test_message
         )
 
-        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(response.status_code, HTTPStatus.CREATED)
         self.assertIn('Location', response.headers)
         self.assertRegex(response.headers['Location'], re.compile(r'^.*/mibs\?messageId=\d+$'))
         self.assertEqual(response.data, b'MessageInABottle was successfully created')
@@ -199,7 +199,7 @@ class TestMibsApi(unittest.TestCase):
             json=self.test_message
         )
 
-        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(response.status_code, HTTPStatus.CREATED)
 
         message_id = int(parse_qs(urlparse(response.headers['Location']).query)['messageId'][0])
 

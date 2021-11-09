@@ -93,7 +93,7 @@ def post():
     db.session.add(message)
     db.session.commit()
 
-    return 'MessageInABottle was successfully created', HTTPStatus.OK, \
+    return 'MessageInABottle was successfully created', HTTPStatus.CREATED, \
         {'Location': url_for('.get', messageId=message.message_id)}
 
 
