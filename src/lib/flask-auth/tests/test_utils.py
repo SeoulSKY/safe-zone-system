@@ -1,4 +1,4 @@
-import unittest, sys
+import unittest
 from requests import Request
 from auth.utils import get_access_token
 from auth.exceptions import *
