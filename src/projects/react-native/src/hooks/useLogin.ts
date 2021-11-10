@@ -115,6 +115,7 @@ export const useLogin = () => {
         ).then(() => setTokens(null))
             .catch((error) =>
               console.error('Failed to revoke access token', error));
+        WebBrowser.openBrowserAsync(`http://${safeZoneURI}/auth/realms/${clientId}/protocol/openid-connect/logout?redirect_uri=${redirectUri}`);
       } else {
         if (!tokens) {
           console.error('User is not logged in, cannot log out user');
