@@ -18,9 +18,15 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "usask.cmpt371.team1project",
+      "buildNumber": "1.0.0",
+      "publishBundlePath": "./bundles/ios"
     },
     "android": {
+      "package": "usask.cmpt371.team1project",
+      "versionCode": 1,
+      "publishBundlePath": "./bundles/android",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"

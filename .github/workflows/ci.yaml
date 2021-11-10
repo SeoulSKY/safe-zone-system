@@ -112,10 +112,16 @@ jobs:
       - name: check out repository
         uses: actions/checkout@v2
 
-      - name: react-native setup; version=${{matrix.node-version}}
+      - name: react-native setup
         uses: actions/setup-node@v1
         with: 
           node-version: ${{env.node-version}}
+        
+      - uses: expo/expo-github-action@v6
+        with:
+          expo-version: 4.x
+          username: ${{ secrets.EXPO_CLI_USERNAME }}
+          password: ${{ secrets.EXPO_CLI_PASSWORD }}
 
       - name: cache dependencies
         id: cache-step
@@ -147,6 +153,12 @@ jobs:
       - name: run test
         run: npm test
         working-directory: ${{env.project-path}}/${{env.dir}}
+
+      # - name: build android apk/bundle
+      #   run: npm run build-android
+
+      # - name: build ios apk/bundle
+      #   run: npm run build-ios
 
       - name: write job status to ci_status.json
         if: github.event_name == 'push'
@@ -341,52 +353,3 @@ jobs:
             ${{steps.report_gen.outputs.report}}
             ```
             > Click [here](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to view logs.
-
-
-
-
-
-
-
-
-
-
-      # - name: Generate python-flask modules
-      #   run : |
-      #    if [[ ${{matrix.dir}} == 'cms' || 
-      #    ${{matrix.dir}} == 'mibs' ]]; then
-      #    npm install @openapitools/openapi-generator-cli -g --save-dev --legacy-peer-deps
-      #    openapi-generator-cli generate -i src/tools/api/openapi.yml -g python-flask -o src/lib/${{steps.image-name-gen.outputs.image-name}}
-      #    fi
-      #    exit 0
-      #   shell: bash
-
-#      env:
-#        REGISTRY: ghcr.io
-#        IMAGE_NAME: ${{ github.repository }}
-#          - name: Extract metadata (tags, labels) for Docker
-#         id: meta
-#         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-#         with:
-#           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-# --tag ${{matrix.path}}-${{GITHUB_REF##*/}}-$(date +'%Y-%m-%d-T-%H-%M-%S')
-
-
-      # - name: get image name
-      #   run: echo ::set-output name=image-name::$(echo $(basename "${{matrix.path}}"))
-      #   id: image-name-gen
-
-      # - name: post job status to discord
-      #   if: always()
-      #   uses: sarisia/actions-status-discord@v1.8.6
-      #   with: 
-      #     webhook: ${{ secrets.DISCORD_WEBHOOK }}
-      #     nocontext: true
-      #     title: ${{env.dir}} status report
-      #     status: ${{job.status}}
-      #     description: |
-      #       Click [here](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to view logs.
-      
-      
-      
-# working-directory: ${{env.project-path}}/${{matrix.dir}}
