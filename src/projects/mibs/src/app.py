@@ -2,25 +2,35 @@
 Stub for MIBS system
 '''
 from flask import Flask, request
-import os
-from src.models import db, Message
+from os import environ as env
+from models import db, Message
+from auth import Authenticator
 from src.api.mibs import mibs_blueprint
 
-app = Flask(__name__)
-db_name = os.environ.get('DB_DATABASE')
-db_user = os.environ.get('DB_USER')
-db_pass = os.environ.get('DB_PASSWORD')
+
+db_name = env.get('DB_DATABASE')
+db_user = env.get('DB_USER')
+db_pass = env.get('DB_PASSWORD')
 db_uri = f'postgresql+psycopg2://{db_user}:{db_pass}@postgres/{db_name}'
 
-app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app = Flask(__name__)
+app.config.update({
+  'SQLALCHEMY_DATABASE_URI': db_uri,
+  'SQLALCHEMY_TRACK_MODIFICATIONS': False,
+
+  'AUTH_ISSUER': 'http://localhost/auth/realms/safe-zone',
+  'AUTH_AUDIENCE': 'account',
+  'AUTH_JWKS_URI': 'http://keycloak:8080/auth/realms/safe-zone/protocol/openid-connect/certs',
+})
+
+auth = Authenticator(app)
 
 db.init_app(app)
 with app.app_context():
     db.create_all()
 
-
 @app.route('/mibs/hello',methods=['POST','GET'])
+@auth.require_token
 def info():
     '''
     Return message for GET request
