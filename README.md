@@ -40,11 +40,11 @@
 5. Navigate to `<project root>/src/projects/react-native`.
 6. Install dependencies:
     ```
-    npm install
+    yarn install
     ```
 7. Execute the following command to start Expo:
     ```
-    npm start
+    yarn start
     ```
 8. Start the Android emulator in Android Studio.
 9. In the running Expo instance press `a` to compile and install the react-native project onto the Android emulator.
@@ -54,31 +54,31 @@
 #### React Native Project
 * Run linting
   ```
-  npm run lint
+  yarn run lint
   ```
 * Run tests:
   ```
-  npm test
+  yarn test
   ```
 * Run tests with auto rerun on file changes:
   ```
-  npm run test-watch 
+  yarn run test-watch 
   ```
   or 
   ```
-  npm test -- --watch
+  yarn test -- --watch
   ```
 
 #### Web Project
 * Run linting
   ```
-  npm run lint
+  yarn run lint
   ```
 * Run tests:
   ```
-  npm test
+  yarn test
   ```
 * Run tests with auto rerun on file changes:
   ```
-  npm test -- --watch
+  yarn test -- --watch
   ```
