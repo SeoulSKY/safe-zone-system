@@ -11,7 +11,7 @@
     "test-watch": "npm run test --watch",
     "pre-apkbuild": "expo export --dev --public-url http://127.0.0.1:8000 && npx http-server -p 8000 dist &",
     "post-apkbuild": "pkill -f http-server",
-    "dev-build-android": "EXPO_ANDROID_KEYSTORE_PASSWORD=safezone371 EXPO_ANDROID_KEY_PASSWORD=safezone371 turtle build:android --type apk --keystore-path ./keystore.jks --keystore-alias 'keyalias' --allow-non-https-public-url --public-url http://127.0.0.1:8000/android-index.json"
+    "dev-build-android": "EXPO_ANDROID_KEYSTORE_PASSWORD=DEV-safezone371-keystore EXPO_ANDROID_KEY_PASSWORD=DEV-safezone371-keystore turtle build:android --type apk --keystore-path ./keystore-dev.jks --keystore-alias 'keyalias' --allow-non-https-public-url --public-url http://127.0.0.1:8000/android-index.json"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.0.7",

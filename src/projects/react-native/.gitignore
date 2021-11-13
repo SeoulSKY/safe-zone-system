@@ -1,7 +1,7 @@
 node_modules/
 .expo/
 npm-debug.*
-#*.jks
+!keystore.jks
 *.p8
 *.p12
 *.key
@@ -9,6 +9,6 @@ npm-debug.*
 *.orig.*
 web-build/
 lib/apis/
-
+dist
 # macOS
 .DS_Store
