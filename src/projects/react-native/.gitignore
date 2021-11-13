@@ -9,6 +9,6 @@ npm-debug.*
 *.orig.*
 web-build/
 lib/apis/
-
+dist
 # macOS
 .DS_Store
