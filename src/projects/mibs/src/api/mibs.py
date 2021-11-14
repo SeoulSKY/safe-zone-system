@@ -60,41 +60,72 @@ def post():
     '''
     /mibs POST endpoint. See openapi file.
     '''
+    return _handle_post_put(is_put=False)
 
-    def validate() -> Tuple[bool, Tuple[str, HTTPStatus]]:
+
+def _handle_post_put(is_put=False):
+    '''
+    Handles /mibs POST and PUT endpoint
+
+    Preconditions:
+        is_put is a not None boolean
+        The global request object is available with a POST or PUT request for /mibs
+
+    Postcondition:
+        see openapi file for /mibs PUT and POST endpoints
+    '''
+
+    def validate() -> Tuple[bool, Tuple[str, HTTPStatus], Message]:
         if not request.is_json:
-            return False, ('Request is not JSON', HTTPStatus.BAD_REQUEST)
+            return False, ('Request is not JSON', HTTPStatus.BAD_REQUEST), None
 
         body = request.get_json()
+
+        if is_put and not 'messageId' in body:
+            return False, ('"messageId" missing from request body', HTTPStatus.BAD_REQUEST), None
+
         if not 'message' in body:
-            return False, ('"message" missing from request body', HTTPStatus.BAD_REQUEST)
+            return False, ('"message" missing from request body', HTTPStatus.BAD_REQUEST), None
 
         if not 'recipients' in body:
-            return False, ('"recipients" missing from request body', HTTPStatus.BAD_REQUEST)
+            return False, ('"recipients" missing from request body', HTTPStatus.BAD_REQUEST), None
 
         email_recipients, sms_recipients, user_recipients, unknown_recipients = \
             _parse_recipients(body['recipients'])
         if len(unknown_recipients) > 0:
-            return False, (f'Unknown recipient types: {json.dumps(unknown_recipients)}',
-                           HTTPStatus.BAD_REQUEST)
+            return False, (f'Unknown recipient types: {json.dumps(unknown_recipients)}', \
+                HTTPStatus.BAD_REQUEST), None
 
         if len(email_recipients + sms_recipients + user_recipients) <= 0:
-            return False, ('Must have atleast 1 recipient', HTTPStatus.BAD_REQUEST)
+            return False, ('Must have atleast 1 recipient', HTTPStatus.BAD_REQUEST), None
 
         if not 'sendTime' in body:
-            return False, ('"sendTime" missing from request body', HTTPStatus.BAD_REQUEST)
+            return False, ('"sendTime" missing from request body', HTTPStatus.BAD_REQUEST), None
 
         try:
             datetimeParse(body['sendTime'])
         except ValueError:
-            return False, ('"sendTime" is not an ISO-8601 UTC date time string',
-                           HTTPStatus.BAD_REQUEST)
+            return False, ('"sendTime" is not an ISO-8601 UTC date time string', \
+                HTTPStatus.BAD_REQUEST), None
 
-        return True, (None, None)
+        message = None
+        if is_put:
+            message = Message.query \
+                .filter_by(message_id=int(body['messageId']), user_id=TEMP_USER_ID).first()
+            if message is None:
+                return False, \
+                    (f'a message with messageId={body["messageId"]} could not be found',
+                    HTTPStatus.BAD_REQUEST), None
+
+            if message.sent or message.last_sent_time is not None:
+                return False, ('message already sent', HTTPStatus.BAD_REQUEST), None
+
+        return True, (None, None), message
 
     assert request is not None
+    assert isinstance(is_put, bool)
 
-    is_valid_request, error_response = validate()
+    is_valid_request, error_response, message = validate()
 
     if not is_valid_request:
         return error_response
@@ -102,22 +133,31 @@ def post():
     # Note: the request recipients is not converted to a
     # AnyOfMessageInABottleRecipients and is instead just a dict
     mib = MessageInABottle.from_dict(request.get_json())
-    email_recipients, *_ = _parse_recipients(mib.recipients)
+    parsed_email_recipients, *_ = _parse_recipients(mib.recipients)
+    email_recipients = [
+        EmailMessageRecipient(email=email_recipient.email)
+        for email_recipient in parsed_email_recipients
+    ]
+
+    if is_put:
+        message.message = mib.message
+        message.send_time = mib.send_time
+        message.email_recipients = email_recipients
+
+        db.session.commit()
+
+        return 'MessageInABottle was successfully updated', HTTPStatus.OK
 
     message = Message(
         user_id=TEMP_USER_ID,
         message=mib.message,
         send_time=mib.send_time,
-        email_recipients=[
-            EmailMessageRecipient(email=email_recipient.email)
-            for email_recipient in email_recipients
-        ]
+        email_recipients=email_recipients
     )
-
     db.session.add(message)
     db.session.commit()
 
-    return 'MessageInABottle was successfully created', HTTPStatus.OK, \
+    return 'MessageInABottle was successfully created', HTTPStatus.CREATED, \
         {'Location': url_for('.get', messageId=message.message_id)}
 
 
@@ -157,12 +197,9 @@ def _parse_recipients(recipients: List[Union[AnyOfMessageInABottleRecipientsItem
 @mibs_blueprint.route('', methods=['PUT'])
 def put():
     '''
-    TODO implement PUT endpoint here
+    /mibs PUT endpoint. See openapi file.
     '''
-    return {
-      'success': json.dumps(True),
-      'message': 'Hello from PUT /mibs',
-    }
+    return _handle_post_put(is_put=True)
 
 
 @mibs_blueprint.route('', methods=['DELETE'])
