@@ -39,7 +39,7 @@ services:
       - postgres
     expose:
       - 80
-  
+
   postgres:
     build:
       context: src/projects/postgres-dev
@@ -56,13 +56,15 @@ services:
     build:
       context: src/projects/keycloak
     environment:
-      DB_VENDOR: POSTGRES
-      DB_ADDR: postgres
-      DB_DATABASE: auth
-      DB_USER: admin
-      DB_SCHEMA: public
-      DB_PASSWORD: password
-    depends_on: 
+      DB_VENDOR: ${DB_VENDOR}
+      DB_ADDR: ${DB_ADDR}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USER: ${DB_USER}
+      DB_SCHEMA: ${DB_SCHEMA}
+      DB_PASSWORD: ${DB_PASSWORD}
+      KEYCLOAK_USER: ${KEYCLOAK_USER}
+      KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
+    depends_on:
       - postgres
     expose:
       - 8080
