@@ -35,17 +35,17 @@ def get():
                 recipients=m.email_recipients).to_dict())
         return messages
 
-    def get_all_messages(userId):
-        return jsonify(serialize(Message.query.filter_by(user_id=userId).all()))
+    def get_all_messages(user_id):
+        return jsonify(serialize(Message.query.filter_by(user_id=user_id).all()))
 
     assert request is not None
-    id = request.args.get('messageId')
-    if id is None:
+    given_id = request.args.get('messageId')
+    if given_id is None:
         return get_all_messages(TEMP_USER_ID), HTTPStatus.OK
 
     # message_id is given
     mib = Message.query.filter_by(
-        user_id=TEMP_USER_ID, message_id=id).all()
+        user_id=TEMP_USER_ID, message_id=given_id).all()
 
     if len(mib) == 0:
         status = HTTPStatus.NOT_FOUND
