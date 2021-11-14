@@ -413,75 +413,67 @@ class TestMibsApi(unittest.TestCase):
             self.assertEqual(None, EmailMessageRecipient.query.get(1))
             self.assertEqual(None, EmailMessageRecipient.query.get(2))
 
-    def test_no_mibs_exist_id(self):
-        """
-        mibs-GET
-        Trying to retrieve a mibs with a given messageId on an empty database
-        Expected outcome: None is returned with NOT_FOUND response
-        """
-        response = self.client.get("/mibs", json={"messageId": 1})
+    def test_get_no_mibs_exist_id(self):
+        '''
+        Test GET /mibs using a given messageId on an empty database
+        '''
+        response = self.client.get('/mibs?messageId=1')
         status = response.status_code
         data = response.get_json()
         self.assertEqual(data, [])
         self.assertEqual(status, HTTPStatus.NOT_FOUND)
 
-    def test_no_mibs_exist_no_id(self):
-        """
-        mibs-GET
-        Trying to retrieve mibs on an empty database without giving a messageId
-        Expected outcome: None is returned with OK response
-        """
-        response = self.client.get("/mibs", json={"messageId": None})
+    def test_get_no_mibs_exist_no_id(self):
+        '''
+        Test GET /mibs with no given messageId on an empty database
+        '''
+        response = self.client.get('/mibs')
         status = response.status_code
         data = response.get_json()
         self.assertEqual(data, [])
         self.assertEqual(status, HTTPStatus.OK)
 
-    def test_request_with_nonexistant_id_(self):
-        """
-        mibs-GET
-        Searching for MIB with a messageId that does not exist
-        Expected outcome: an empty list is returned with a NOT_FOUND
-        response
-        """
+    def test_get_request_with_nonexistant_id_(self):
+        '''
+        Testing GET /mibs to try retrieving a mib with an non-existant messageId
+        '''
         self.populate_messages()
-        response = self.client.get("/mibs", json={"messageId": 100})
+        response = self.client.get('/mibs?messageId=100')
         status = response.status_code
         data = response.get_json()
         self.assertEqual(data, [])
         self.assertEqual(status, HTTPStatus.NOT_FOUND)
 
     def test_get_mib_with_valid_id(self):
-        """
-        mibs-GET
-        Searching for a MIB with a valid messageId
-        Expected outcome: the MIB with the corresponding messageId is returned with
-        an OKAY response
-        """
+        '''
+        Test GET /mibs to try retrieving a mib with an existant messageId
+        '''
         self.populate_messages()
-        response = self.client.get("/mibs", json={"messageId": 1})
+        response = self.client.get('/mibs?messageId=1')
         status = response.status_code
         data = response.get_json()
         self.assertNotEqual(data, [])
-        self.assertEqual(data[0]["message_id"], 1)
+        self.assertEqual(data[0]['message_id'], 1)
         self.assertEqual(status, HTTPStatus.OK)
 
-    def test_no_given_message_id(self):
-        """
-        mibs-GET
-        Making request with no given messageId
-        Expected outcome: all MIBs for the user are returned with an OKAY response
-        """
+    def test_get_no_given_message_id(self):
+        '''
+        Test when no messageId is given
+        '''
         self.populate_messages()
-        response = self.client.get("/mibs", json={"messageId": None})
+        response = self.client.get('/mibs')
         status = response.status_code
         data = response.get_json()
         self.assertIsNotNone(data)
-        # user should have 5 messages
         self.assertEqual(len(data), 5)
+        self.assertEqual(data[0]['message_id'], 1)
+        self.assertEqual(data[1]['message_id'], 2)
+        self.assertEqual(data[2]['message_id'], 5)
+        self.assertEqual(data[3]['message_id'], 6)
+        self.assertEqual(data[4]['message_id'], 9)
         self.assertEqual(status, HTTPStatus.OK)
 
-    # def not_authorized(self):
+    # def test_get_not_authorized(self):
     #     """
     #     mibs-GET
     #     Making a request from an unauthorized user
@@ -532,40 +524,40 @@ class TestMibsApi(unittest.TestCase):
         """
         # mibs to populate the db
         filler_mibs = [
-            {"message_id": 1, "user_id": TEMP_USER_ID,
-                "message": "This was my first mibs message!",
-                "send_time": datetime.now()},
-            {"message_id": 2, "user_id": TEMP_USER_ID,
-                "message": "This was my second mibs message!",
-                "send_time": datetime.now()},
-            {"message_id": 3, "user_id": "some id",
-                "message": "This is someone else's message!",
-                "send_time": datetime.now()},
-            {"message_id": 4, "user_id": "a third id",
-                "message": "There are more people making messages!",
-                "send_time": datetime.now()},
-            {"message_id": 5, "user_id": TEMP_USER_ID,
-                "message": "This is actually my third message (ignore the 5)!",
-                "send_time": datetime.now()},
-            {"message_id": 6, "user_id": TEMP_USER_ID,
-                "message": "I have a lot of messages!",
-                "send_time": datetime.now()},
-            {"message_id": 7, "user_id": "a third id",
-                "message": "Felt like I needed another message!",
-                "send_time": datetime.now()},
-            {"message_id": 8, "user_id": "some id",
-                "message": "Me too!",
-                "send_time": datetime.now()},
-            {"message_id": 9, "user_id": TEMP_USER_ID,
-                "message": "We are almost up to ten mibs in the db!",
-                "send_time": datetime.now()}
+            {'message_id': 1, 'user_id': TEMP_USER_ID,
+                'message': 'This was my first mibs message!',
+                'send_time': datetime.now()},
+            {'message_id': 2, 'user_id': TEMP_USER_ID,
+                'message': 'This was my second mibs message!',
+                'send_time': datetime.now()},
+            {'message_id': 3, 'user_id': 'some id',
+                'message': 'This is someone elses message!',
+                'send_time': datetime.now()},
+            {'message_id': 4, 'user_id': 'a third id',
+                'message': 'There are more people making messages!',
+                'send_time': datetime.now()},
+            {'message_id': 5, 'user_id': TEMP_USER_ID,
+                'message': 'This is actually my third message (ignore the 5)!',
+                'send_time': datetime.now()},
+            {'message_id': 6, 'user_id': TEMP_USER_ID,
+                'message': 'I have a lot of messages!',
+                'send_time': datetime.now()},
+            {'message_id': 7, 'user_id': 'a third id',
+                'message': 'Felt like I needed another message!',
+                'send_time': datetime.now()},
+            {'message_id': 8, 'user_id': 'some id',
+                'message': 'Me too!',
+                'send_time': datetime.now()},
+            {'message_id': 9, 'user_id': TEMP_USER_ID,
+                'message': 'We are almost up to ten mibs in the db!',
+                'send_time': datetime.now()}
         ]
         with self.app.app_context():
             for i in range(len(filler_mibs)):
-                db.session.add(Message(message_id=filler_mibs[i]["message_id"],
-                                       user_id=filler_mibs[i]["user_id"],
-                                       message=filler_mibs[i]["message"],
-                                       send_time=filler_mibs[i]["send_time"]))
+                db.session.add(Message(message_id=filler_mibs[i]['message_id'],
+                                       user_id=filler_mibs[i]['user_id'],
+                                       message=filler_mibs[i]['message'],
+                                       send_time=filler_mibs[i]['send_time']))
             db.session.commit()
 
 

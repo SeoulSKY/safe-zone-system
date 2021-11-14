@@ -22,34 +22,36 @@ TEMP_USER_ID = 'temp-user-id'
 
 @mibs_blueprint.route('', methods=['GET'])
 def get():
+    '''
+    /mibs GET endpoint. See openapi file.
+    '''
     def serialize(mibs):
         if len(mibs) == 0:
             return []
         messages = []
         for m in mibs:
             messages.append(MessageInABottle(message_id=m.message_id,
-                                             message=m.message,
-                                             recipients=m.email_recipients).to_dict())
+                message=m.message,
+                recipients=m.email_recipients).to_dict())
         return messages
 
-    assert request is not None
-    req = request.get_json()
+    def get_all_messages(userId):
+        return jsonify(serialize(Message.query.filter_by(user_id=userId).all()))
 
-    # if no message_id is given, retrieve all mibs for user
-    if req["messageId"] is None:
-        return (jsonify(serialize(Message.query.filter_by(user_id=TEMP_USER_ID).all())), HTTPStatus.OK)
+    assert request is not None
+    id = request.args.get('messageId')
+    if id is None:
+        return get_all_messages(TEMP_USER_ID), HTTPStatus.OK
 
     # message_id is given
-    else:
-        mib = Message.query.filter_by(
-            user_id=TEMP_USER_ID, message_id=req["messageId"]).all()
+    mib = Message.query.filter_by(
+        user_id=TEMP_USER_ID, message_id=id).all()
 
-        # if there's no message with the id, return NOT_FOUND
-        if len(mib) == 0:
-            status = HTTPStatus.NOT_FOUND
-        else:
-            status = HTTPStatus.OK
-        return (jsonify(serialize(mib)), status)
+    if len(mib) == 0:
+        status = HTTPStatus.NOT_FOUND
+    else:
+        status = HTTPStatus.OK
+    return jsonify(serialize(mib)), status
 
 
 @mibs_blueprint.route('', methods=['POST'])
