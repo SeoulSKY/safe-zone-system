@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  mibs:
+    depends_on:
+      - postgres
+
+  keycloak:
+    depends_on:
+      - postgres
+
+  postgres:
+    image: ${CONTAINER_REPO}/postgres-dev:${TAG:-latest}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${DB_KEYCLOAK_DATABASE}
+      POSTGRES_MIBS_DB: ${DB_MIBS_DATABASE}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    expose:
+      - 5432
+  
+volumes:
+  postgres_data:
+    driver: local
