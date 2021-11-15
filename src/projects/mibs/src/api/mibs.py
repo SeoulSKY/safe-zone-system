@@ -8,6 +8,7 @@ from flask.helpers import url_for
 from dateutil.parser import parse as datetimeParse
 from http import HTTPStatus
 
+from lib.logger.safezone_logger import get_logger
 from lib.mibs.python.openapi.swagger_server.models import MessageInABottle, EmailRecipient
 from lib.mibs.python.openapi.swagger_server.models.any_of_message_in_a_bottle_recipients_items \
     import AnyOfMessageInABottleRecipientsItems
@@ -15,6 +16,7 @@ from lib.mibs.python.openapi.swagger_server.models.sms_recipient import SmsRecip
 from lib.mibs.python.openapi.swagger_server.models.user_recipient import UserRecipient
 from models import Message, EmailMessageRecipient, db
 
+logger = get_logger('mibs.mibs.app')
 mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
 
 TEMP_USER_ID = 'temp-user-id'
@@ -24,6 +26,7 @@ def get():
     '''
     TODO implement GET endpoint here
     '''
+    logger.info('GET request received')
     return {
       'success': json.dumps(True),
       'message': 'Hello from GET /mibs',
@@ -56,14 +59,16 @@ def _handle_post_put(is_put=False):
             return False, ('Request is not JSON', HTTPStatus.BAD_REQUEST), None
 
         body = request.get_json()
-
         if is_put and not 'messageId' in body:
+            logger.info('"messageId" not found in request body')
             return False, ('"messageId" missing from request body', HTTPStatus.BAD_REQUEST), None
 
         if not 'message' in body:
+            logger.info('"message" not found in request body')
             return False, ('"message" missing from request body', HTTPStatus.BAD_REQUEST), None
 
         if not 'recipients' in body:
+            logger.info('"recipients" not found in request body')
             return False, ('"recipients" missing from request body', HTTPStatus.BAD_REQUEST), None
 
         email_recipients, sms_recipients, user_recipients, unknown_recipients = \
@@ -80,7 +85,8 @@ def _handle_post_put(is_put=False):
 
         try:
             datetimeParse(body['sendTime'])
-        except ValueError:
+        except ValueError as e:
+            logger.exception('"sendTime" is not an ISO-8601 UTC date time string', e)
             return False, ('"sendTime" is not an ISO-8601 UTC date time string', \
                 HTTPStatus.BAD_REQUEST), None
 
