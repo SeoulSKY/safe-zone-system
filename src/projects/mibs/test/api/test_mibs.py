@@ -782,10 +782,6 @@ class TestMibsApi(unittest.TestCase):
             return db.session.query(Message).filter(Message.user_id == user_id).count()
 
     def populate_messages(self):
-        """
-        Fills database with messages
-        """
-        # mibs to populate the db
         filler_mibs = [
             {'message_id': 1, 'user_id': TEMP_USER_ID,
                 'message': 'This was my first mibs message!',

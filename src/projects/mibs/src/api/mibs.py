@@ -162,7 +162,7 @@ def _handle_post_put(is_put=False):
 
 
 def _parse_recipients(recipients: List[Union[AnyOfMessageInABottleRecipientsItems,
-                                             Dict[str, Any]]]) -> Tuple[EmailRecipient, SmsRecipient, UserRecipient, Dict[str, Any]]:
+        Dict[str, Any]]]) -> Tuple[EmailRecipient, SmsRecipient, UserRecipient, Dict[str, Any]]:
     '''
     Parse a list recipeints in to their respective categories.
 
