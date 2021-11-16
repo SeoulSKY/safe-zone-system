@@ -10,7 +10,7 @@ from dateutil.parser import parse as datetimeParse
 from datetime import datetime
 from api.mibs import mibs_blueprint, delete_mibs_for_user, TEMP_USER_ID
 from models import Message, EmailMessageRecipient, db
-from flask import Flask, request, json
+from flask import Flask
 from http import HTTPStatus
 
 test_email = 'test@email.com'
