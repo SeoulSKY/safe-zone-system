@@ -695,7 +695,7 @@ class TestMibsApi(unittest.TestCase):
         self.assertEqual(data, [])
         self.assertEqual(status, HTTPStatus.OK)
 
-    def test_get_request_with_nonexistant_id_(self):
+    def test_get_request_with_nonexistant_id(self):
         '''
         Testing GET /mibs to try retrieving a mib with an non-existant messageId
         '''
@@ -729,6 +729,8 @@ class TestMibsApi(unittest.TestCase):
         self.assertIsNotNone(data)
         self.assertEqual(len(data), 5)
         self.assertEqual(data[0]['message_id'], 1)
+        self.assertEqual(data[0]['message'], 'This was my first mibs message!')
+        self.assertEqual(data[0]['recipients'][0]['email'], 'test@mail')
         self.assertEqual(data[1]['message_id'], 2)
         self.assertEqual(data[2]['message_id'], 5)
         self.assertEqual(data[3]['message_id'], 6)
@@ -785,38 +787,50 @@ class TestMibsApi(unittest.TestCase):
         filler_mibs = [
             {'message_id': 1, 'user_id': TEMP_USER_ID,
                 'message': 'This was my first mibs message!',
-                'send_time': datetime.now()},
+                'recipients': [{'email': 'test@mail'}],
+                'send_time': '2021-10-27T23:22:19.911Z'},
             {'message_id': 2, 'user_id': TEMP_USER_ID,
                 'message': 'This was my second mibs message!',
-                'send_time': datetime.now()},
+                'recipients': [{'email': 'test2@mail'}],
+                'send_time': '2021-10-27T23:22:19.911Z'},
             {'message_id': 3, 'user_id': 'some id',
                 'message': 'This is someone elses message!',
-                'send_time': datetime.now()},
+                'recipients': [{'email': 'test3@mail'}],
+                'send_time': '2021-10-27T23:22:19.911Z'},
             {'message_id': 4, 'user_id': 'a third id',
                 'message': 'There are more people making messages!',
-                'send_time': datetime.now()},
+                'recipients': [{'email': 'test4@mail'}, {'email': 'aSecond@email'}],
+                'send_time': '2021-10-27T23:22:19.911Z'},
             {'message_id': 5, 'user_id': TEMP_USER_ID,
                 'message': 'This is actually my third message (ignore the 5)!',
-                'send_time': datetime.now()},
+                'recipients': [{'email': 'test5@mail'}],
+                'send_time': '2021-10-27T23:22:19.911Z'},
             {'message_id': 6, 'user_id': TEMP_USER_ID,
                 'message': 'I have a lot of messages!',
-                'send_time': datetime.now()},
+                'recipients': [{'email': 'test6@mail'}],
+                'send_time': '2021-10-27T23:22:19.911Z'},
             {'message_id': 7, 'user_id': 'a third id',
                 'message': 'Felt like I needed another message!',
-                'send_time': datetime.now()},
+                'recipients': [{'email': 'test7@mail'}],
+                'send_time': '2021-10-27T23:22:19.911Z'},
             {'message_id': 8, 'user_id': 'some id',
                 'message': 'Me too!',
-                'send_time': datetime.now()},
+                'recipients': [{'email': 'randomemail@mail'}],
+                'send_time': '2021-10-27T23:22:19.911Z'},
             {'message_id': 9, 'user_id': TEMP_USER_ID,
                 'message': 'We are almost up to ten mibs in the db!',
-                'send_time': datetime.now()}
+                'recipients': [{'email': 'test9@mail'}],
+                'send_time': '2021-10-27T23:22:19.911Z'}
         ]
         with self.app.app_context():
             for i in range(len(filler_mibs)):
+                recipients = [EmailMessageRecipient(email=r['email'])
+                    for r in filler_mibs[i]['recipients']]
                 db.session.add(Message(message_id=filler_mibs[i]['message_id'],
                                        user_id=filler_mibs[i]['user_id'],
                                        message=filler_mibs[i]['message'],
-                                       send_time=filler_mibs[i]['send_time']))
+                                       email_recipients=recipients,
+                                       send_time=datetime.now()))
             db.session.commit()
 
 

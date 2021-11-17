@@ -32,7 +32,8 @@ def get():
         for m in mibs:
             messages.append(MessageInABottle(message_id=m.message_id,
                 message=m.message,
-                recipients=m.email_recipients).to_dict())
+                recipients=[EmailRecipient(email=er.email)
+                    for er in m.email_recipients]).to_dict())
         return messages
 
     def get_all_messages(user_id):
