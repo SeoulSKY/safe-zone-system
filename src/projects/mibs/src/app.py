@@ -7,7 +7,6 @@ from models import db, Message
 from auth import Authenticator
 from src.api.mibs import mibs_blueprint
 
-
 db_name = env.get('DB_DATABASE')
 db_user = env.get('DB_USER')
 db_pass = env.get('DB_PASSWORD')

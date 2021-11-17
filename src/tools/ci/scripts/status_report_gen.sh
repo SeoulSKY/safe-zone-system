@@ -1,12 +1,19 @@
 #!/bin/bash
 
-#VARIABLES
+# When a new job is added:
+# 1.) add variable for job's name
+# 2.) add variable for job artifact directory
+# 3.) call get_status and populate description accordingly
+
+#Job Names as defined in CI
 docker_job="docker-job"
 python_job="python-job"
 react_native_job="react-native-job"
 web_job="web-job"
 smoke_test_job="smoke-test"
+android_apk_publish_job="publish-android-apk"
 
+#VARIABLES
 success="success"
 failure="failure"
 value=""
@@ -20,20 +27,21 @@ ci_status_json=ci_status.json
 
     #The directory names(values below) are the names of the artifact.
     #The names are declared as environment variables for each job and 
-    #are set as the artifact name the jobs' upload step
+    #are set as the artifact name in the jobs' upload step
 
-docker_cms_dir="artifact-docker-job-cms"
-docker_keycloak_dir="artifact-docker-job-keycloak"
-docker_mibs_dir="artifact-docker-job-mibs"
-docker_postgres_dev_dir="artifact-docker-job-postgres-dev"
-docker_reverse_proxy_dir="artifact-docker-job-reverse-proxy"
-docker_smtp_dev_dir="artifact-docker-job-smtp-dev"
-docker_web_dir="artifact-docker-job-web"
-python_cms_dir="artifact-python-job-cms"
-python_mibs_dir="artifact-python-job-mibs"
-react_native_dir="artifact-react-native-job"
-web_dir="artifact-web-job"
-smoke_test_dir="artifact-smoke-test"
+docker_cms_dir="artifact-$docker_job-cms"
+docker_keycloak_dir="artifact-$docker_job-keycloak"
+docker_mibs_dir="artifact-$docker_job-mibs"
+docker_postgres_dev_dir="artifact-$docker_job-postgres-dev"
+docker_reverse_proxy_dir="artifact-$docker_job-reverse-proxy"
+docker_smtp_dev_dir="artifact-$docker_job-smtp-dev"
+docker_web_dir="artifact-$docker_job-web"
+python_cms_dir="artifact-$python_job-cms"
+python_mibs_dir="artifact-$python_job-mibs"
+react_native_dir="artifact-$react_native_job"
+web_dir="artifact-$web_job"
+smoke_test_dir="artifact-$smoke_test_job"
+android_apk_publish_dir="artifact-$android_apk_publish_job"
 
 get_status(){
     if [ -d $1 ];
@@ -113,6 +121,10 @@ report(){
     # populate smoke test job status
     stat="$(get_status $smoke_test_dir $smoke_test_job)"
     populate_description "smoke-test[$stat] \n"
+
+    # populate android apk build job status
+    stat="$(get_status $android_apk_publish_dir $android_apk_publish_job)"
+    populate_description "android-apk-publish[$stat] \n"
 
     description+="$status"
     echo $description

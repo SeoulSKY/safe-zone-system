@@ -4,6 +4,9 @@ venv
 .DS_Store
 **/node_modules/
 .idea/
+**/react-native/dist/
 */coverage/\*\*/*
 coverage/\*\*/*
 .vscode
+*jks
+!keystore-dev.jks
