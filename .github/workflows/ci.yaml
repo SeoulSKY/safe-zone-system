@@ -433,7 +433,7 @@ jobs:
       - name: upload apk
         uses: actions/upload-artifact@v2
         with: 
-          name: "android-apk:${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}}"
+          name: "android-apk.${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}}"
           path: ${{env.home-dir}}/expo-apps/*.apk
 
       - name: clear expo-apps directory
