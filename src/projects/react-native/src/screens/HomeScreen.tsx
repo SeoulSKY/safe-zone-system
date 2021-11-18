@@ -13,7 +13,7 @@ const mibsApi = new MibsApi() // test mibs import
  * @method
  * @return {ReactElement}
  */
-export default function HomeScreen(): ReactElement {
+export function HomeScreen(): ReactElement {
   const [cmsText, setCmsText] = useState('No Response');
   const [mibsText, setMibsText] = useState('No Response');
 
