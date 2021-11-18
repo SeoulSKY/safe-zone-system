@@ -342,6 +342,7 @@ jobs:
     env: 
       ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts  
       artifact-name: artifact-${{github.job}}
+      docker-dev: ${{ github.workspace }}/docker/dev
     steps:
       - name: checkout repo
         uses: actions/checkout@v2
@@ -349,7 +350,8 @@ jobs:
           lfs: true
           
       - name: run containers
-        run: docker-compose -f docker-compose.yml up -d --build
+        run: docker-compose -f docker-compose.yml --env-file dev.env up -d --build
+        working-directory: ${{env.docker-dev}}
         
       - name: sleep for 30 seconds
         uses: jakejarvis/wait-action@master
@@ -362,6 +364,7 @@ jobs:
       - name: stop containers
         if: always()
         run: docker-compose -f docker-compose.yml down
+        working-directory: ${{env.docker-dev}}
 
       - name: write job status to ci_status.json
         if: github.event_name == 'push'
