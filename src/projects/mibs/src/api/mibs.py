@@ -3,7 +3,7 @@
 '''
 
 from typing import Any, Dict, List, Tuple, Union
-from flask import Blueprint, json, request
+from flask import Blueprint, json, request, jsonify
 from flask.helpers import url_for
 from dateutil.parser import parse as datetimeParse
 from http import HTTPStatus
@@ -19,15 +19,40 @@ mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
 
 TEMP_USER_ID = 'temp-user-id'
 
+
 @mibs_blueprint.route('', methods=['GET'])
 def get():
     '''
-    TODO implement GET endpoint here
+    /mibs GET endpoint. See openapi file.
     '''
-    return {
-      'success': json.dumps(True),
-      'message': 'Hello from GET /mibs',
-    }
+    def serialize(mibs):
+        if len(mibs) == 0:
+            return []
+        messages = []
+        for m in mibs:
+            messages.append(MessageInABottle(message_id=m.message_id,
+                message=m.message,
+                recipients=[EmailRecipient(email=er.email)
+                    for er in m.email_recipients]).to_dict())
+        return messages
+
+    def get_all_messages(user_id):
+        return jsonify(serialize(Message.query.filter_by(user_id=user_id).all()))
+
+    assert request is not None
+    given_id = request.args.get('messageId')
+    if given_id is None:
+        return get_all_messages(TEMP_USER_ID), HTTPStatus.OK
+
+    # message_id is given
+    mib = Message.query.filter_by(
+        user_id=TEMP_USER_ID, message_id=given_id).all()
+
+    if len(mib) == 0:
+        status = HTTPStatus.NOT_FOUND
+    else:
+        status = HTTPStatus.OK
+    return jsonify(serialize(mib)), status
 
 
 @mibs_blueprint.route('', methods=['POST'])
@@ -137,8 +162,8 @@ def _handle_post_put(is_put=False):
         {'Location': url_for('.get', messageId=message.message_id)}
 
 
-def _parse_recipients(recipients: List[Union[AnyOfMessageInABottleRecipientsItems, \
-    Dict[str, Any]]]) -> Tuple[EmailRecipient, SmsRecipient, UserRecipient, Dict[str, Any]]:
+def _parse_recipients(recipients: List[Union[AnyOfMessageInABottleRecipientsItems,
+        Dict[str, Any]]]) -> Tuple[EmailRecipient, SmsRecipient, UserRecipient, Dict[str, Any]]:
     '''
     Parse a list recipeints in to their respective categories.
 
@@ -187,7 +212,8 @@ def delete():
     assert request is not None
     message_id_unparsed = request.args.get('messageId', None)
 
-    message_id = None if message_id_unparsed is None else int(message_id_unparsed)
+    message_id = None if message_id_unparsed is None else int(
+        message_id_unparsed)
     user_id = TEMP_USER_ID
 
     status_code = HTTPStatus.OK
@@ -239,4 +265,3 @@ def delete_mibs_for_user(user_id: str, message_id: Union[None, str] = None) -> b
         db.session.commit()
         return True
     return False
-

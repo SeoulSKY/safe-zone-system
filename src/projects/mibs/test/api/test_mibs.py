@@ -1,13 +1,13 @@
 '''
 /mibs endpoint unit tests
 '''
-
 import unittest
+
 
 import re
 from urllib.parse import urlparse, parse_qs
 from dateutil.parser import parse as datetimeParse
-from datetime import  datetime
+from datetime import datetime
 from api.mibs import mibs_blueprint, delete_mibs_for_user, TEMP_USER_ID
 from models import Message, EmailMessageRecipient, db
 from flask import Flask
@@ -24,6 +24,7 @@ class TestMibsApi(unittest.TestCase):
     '''
     /mibs endpoint unit tests
     '''
+
     def setUp(self):
         self.app = Flask(__name__)
         self.app.config['TESTING'] = True
@@ -674,10 +675,80 @@ class TestMibsApi(unittest.TestCase):
             self.assertEqual(None, EmailMessageRecipient.query.get(1))
             self.assertEqual(None, EmailMessageRecipient.query.get(2))
 
+    def test_get_no_mibs_exist_id(self):
+        '''
+        Test GET /mibs using a given messageId on an empty database
+        '''
+        response = self.client.get('/mibs?messageId=1')
+        status = response.status_code
+        data = response.get_json()
+        self.assertEqual(data, [])
+        self.assertEqual(status, HTTPStatus.NOT_FOUND)
+
+    def test_get_no_mibs_exist_no_id(self):
+        '''
+        Test GET /mibs with no given messageId on an empty database
+        '''
+        response = self.client.get('/mibs')
+        status = response.status_code
+        data = response.get_json()
+        self.assertEqual(data, [])
+        self.assertEqual(status, HTTPStatus.OK)
+
+    def test_get_request_with_nonexistant_id(self):
+        '''
+        Testing GET /mibs to try retrieving a mib with an non-existant messageId
+        '''
+        self.populate_messages()
+        response = self.client.get('/mibs?messageId=100')
+        status = response.status_code
+        data = response.get_json()
+        self.assertEqual(data, [])
+        self.assertEqual(status, HTTPStatus.NOT_FOUND)
+
+    def test_get_mib_with_valid_id(self):
+        '''
+        Test GET /mibs to try retrieving a mib with an existant messageId
+        '''
+        self.populate_messages()
+        response = self.client.get('/mibs?messageId=1')
+        status = response.status_code
+        data = response.get_json()
+        self.assertNotEqual(data, [])
+        self.assertEqual(data[0]['message_id'], 1)
+        self.assertEqual(status, HTTPStatus.OK)
+
+    def test_get_no_given_message_id(self):
+        '''
+        Test when no messageId is given
+        '''
+        self.populate_messages()
+        response = self.client.get('/mibs')
+        status = response.status_code
+        data = response.get_json()
+        self.assertIsNotNone(data)
+        self.assertEqual(len(data), 5)
+        self.assertEqual(data[0]['message_id'], 1)
+        self.assertEqual(data[0]['message'], 'This was my first mibs message!')
+        self.assertEqual(data[0]['recipients'][0]['email'], 'test@mail')
+        self.assertEqual(data[1]['message_id'], 2)
+        self.assertEqual(data[2]['message_id'], 5)
+        self.assertEqual(data[3]['message_id'], 6)
+        self.assertEqual(data[4]['message_id'], 9)
+        self.assertEqual(status, HTTPStatus.OK)
+
+    # def test_get_not_authorized(self):
+    #     """
+    #     mibs-GET
+    #     Making a request from an unauthorized user
+    #     Expected outcome: no Mibs are returned with an UNAUTHORIZED response
+    #     """
+    #     pass
+
     def create_email_recipient(self,
-        message_send_request_id=1,
-        message_id=test_message_id,
-        email=test_email):
+                               message_send_request_id=1,
+                               message_id=test_message_id,
+                               email=test_email):
         '''
         Helper function to create and insert a email recipient in the database
         '''
@@ -711,6 +782,56 @@ class TestMibsApi(unittest.TestCase):
         '''
         with self.app.app_context():
             return db.session.query(Message).filter(Message.user_id == user_id).count()
+
+    def populate_messages(self):
+        filler_mibs = [
+            {'message_id': 1, 'user_id': TEMP_USER_ID,
+                'message': 'This was my first mibs message!',
+                'recipients': [{'email': 'test@mail'}],
+                'send_time': '2021-10-27T23:22:19.911Z'},
+            {'message_id': 2, 'user_id': TEMP_USER_ID,
+                'message': 'This was my second mibs message!',
+                'recipients': [{'email': 'test2@mail'}],
+                'send_time': '2021-10-27T23:22:19.911Z'},
+            {'message_id': 3, 'user_id': 'some id',
+                'message': 'This is someone elses message!',
+                'recipients': [{'email': 'test3@mail'}],
+                'send_time': '2021-10-27T23:22:19.911Z'},
+            {'message_id': 4, 'user_id': 'a third id',
+                'message': 'There are more people making messages!',
+                'recipients': [{'email': 'test4@mail'}, {'email': 'aSecond@email'}],
+                'send_time': '2021-10-27T23:22:19.911Z'},
+            {'message_id': 5, 'user_id': TEMP_USER_ID,
+                'message': 'This is actually my third message (ignore the 5)!',
+                'recipients': [{'email': 'test5@mail'}],
+                'send_time': '2021-10-27T23:22:19.911Z'},
+            {'message_id': 6, 'user_id': TEMP_USER_ID,
+                'message': 'I have a lot of messages!',
+                'recipients': [{'email': 'test6@mail'}],
+                'send_time': '2021-10-27T23:22:19.911Z'},
+            {'message_id': 7, 'user_id': 'a third id',
+                'message': 'Felt like I needed another message!',
+                'recipients': [{'email': 'test7@mail'}],
+                'send_time': '2021-10-27T23:22:19.911Z'},
+            {'message_id': 8, 'user_id': 'some id',
+                'message': 'Me too!',
+                'recipients': [{'email': 'randomemail@mail'}],
+                'send_time': '2021-10-27T23:22:19.911Z'},
+            {'message_id': 9, 'user_id': TEMP_USER_ID,
+                'message': 'We are almost up to ten mibs in the db!',
+                'recipients': [{'email': 'test9@mail'}],
+                'send_time': '2021-10-27T23:22:19.911Z'}
+        ]
+        with self.app.app_context():
+            for i in range(len(filler_mibs)):
+                recipients = [EmailMessageRecipient(email=r['email'])
+                    for r in filler_mibs[i]['recipients']]
+                db.session.add(Message(message_id=filler_mibs[i]['message_id'],
+                                       user_id=filler_mibs[i]['user_id'],
+                                       message=filler_mibs[i]['message'],
+                                       email_recipients=recipients,
+                                       send_time=datetime.now()))
+            db.session.commit()
 
 
 if __name__ == '__main__':
