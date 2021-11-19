@@ -32,6 +32,7 @@ def get():
         for m in mibs:
             messages.append(MessageInABottle(message_id=m.message_id,
                 message=m.message,
+                send_time=m.send_time,
                 recipients=[EmailRecipient(email=er.email)
                     for er in m.email_recipients]).to_dict())
         return messages
@@ -90,6 +91,9 @@ def _handle_post_put(is_put=False):
 
         if not 'recipients' in body:
             return False, ('"recipients" missing from request body', HTTPStatus.BAD_REQUEST), None
+
+        if len(body['message']) == 0:
+            return False, ('message cannot be empty', HTTPStatus.BAD_REQUEST), None
 
         email_recipients, sms_recipients, user_recipients, unknown_recipients = \
             _parse_recipients(body['recipients'])

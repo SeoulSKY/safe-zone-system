@@ -1,9 +1,11 @@
+import 'react-native-url-polyfill/auto';
+
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { NavigationContainer } from '@react-navigation/native'
 import { Ionicons } from '@expo/vector-icons';
-import { HomeScreen, MibScreen } from '@/screens/index'
+import { HomeScreen, MibScreen, MibsCreateScreen } from '@/screens/index'
 
 const Tab = createBottomTabNavigator()
 
@@ -15,7 +17,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Tab.Navigator
-        screenOptions={({ route }) => ({
+        screenOptions={({ route, navigation }) => ({
           tabBarShowLabel: false,
           tabBarIcon: ({ focused, color, size }) => {
             let iconName: React.ComponentProps<typeof Ionicons>["name"] = "home";
@@ -50,6 +52,14 @@ export default function App() {
             }
           }}
         />
+        <Tab.Screen
+          name="Create Message in a Bottle"
+          component={MibsCreateScreen}
+          options={{
+            tabBarButton: () => null,
+            tabBarVisible: false,
+          }}
+      />
       </Tab.Navigator>
       <StatusBar style="auto" />
     </NavigationContainer>
