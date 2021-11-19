@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  mibs:
+    depends_on:
+      - smtp-dev
+
+  keycloak:
+    depends_on:
+      - smtp-dev
+  
+  smtp-dev:
+    image: ${CONTAINER_REPO}/smtp-dev:${TAG:-latest}
+    environment:
+      MAILNAME: smtp-dev
+    expose:
+      - 25
