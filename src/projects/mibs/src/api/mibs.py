@@ -8,26 +8,25 @@ from flask.helpers import url_for
 from dateutil.parser import parse as datetimeParse
 from http import HTTPStatus
 
+from lib.logger.safezone_logger import get_logger
 from lib.mibs.python.openapi.swagger_server.models import MessageInABottle, EmailRecipient
 from lib.mibs.python.openapi.swagger_server.models.any_of_message_in_a_bottle_recipients_items \
     import AnyOfMessageInABottleRecipientsItems
 from lib.mibs.python.openapi.swagger_server.models.sms_recipient import SmsRecipient
 from lib.mibs.python.openapi.swagger_server.models.user_recipient import UserRecipient
 from models import Message, EmailMessageRecipient, db
-from lib.logger.safezone_logger import get_logger
 
 mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
 
 TEMP_USER_ID = 'temp-user-id'
 
-logger = get_logger("mibs.api")
+logger = get_logger('mibs.api')
 
 @mibs_blueprint.route('', methods=['GET'])
 def get():
     '''
     /mibs GET endpoint. See openapi file.
     '''
-    logger.info("Getting Messages...")
     def serialize(mibs):
         if len(mibs) == 0:
             return []
@@ -37,7 +36,6 @@ def get():
                 message=m.message,
                 recipients=[EmailRecipient(email=er.email)
                     for er in m.email_recipients]).to_dict())
-        logger.info("serializing mibs => messages added:\n {}", messages)
         return messages
 
     def get_all_messages(user_id):
@@ -45,9 +43,9 @@ def get():
 
     assert request is not None
     given_id = request.args.get('messageId')
-    logger.debug("messageID given = %s", given_id)
+    logger.debug('messageID given = %s', given_id)
     if given_id is None:
-        logger.debug("MessageID is none, getting messages for user ID = %s", TEMP_USER_ID)
+        logger.debug('MessageID is none, getting messages for user ID = %s', TEMP_USER_ID)
         return get_all_messages(TEMP_USER_ID), HTTPStatus.OK
 
     # message_id is given
@@ -55,7 +53,7 @@ def get():
         user_id=TEMP_USER_ID, message_id=given_id).all()
 
     if len(mib) == 0:
-        logger.debug("no mib found for messages with ID = %s", given_id)
+        logger.debug('no mib found for messages with ID = %s', given_id)
         status = HTTPStatus.NOT_FOUND
     else:
         status = HTTPStatus.OK
@@ -101,7 +99,7 @@ def _handle_post_put(is_put=False):
         email_recipients, sms_recipients, user_recipients, unknown_recipients = \
             _parse_recipients(body['recipients'])
         if len(unknown_recipients) > 0:
-            logger.debug("Unknown recipient types")
+            logger.debug('Unknown recipient types')
             return False, (f'Unknown recipient types: {json.dumps(unknown_recipients)}', \
                 HTTPStatus.BAD_REQUEST), None
 
@@ -237,7 +235,6 @@ def delete():
             message = 'Failed to delete all mibs: User does not have any mibs'
         else:
             message = f'Failed to delete mib with message id {message_id}'
-            
     logger.debug(message)
     return message, status_code
 
@@ -269,7 +266,7 @@ def delete_mibs_for_user(user_id: str, message_id: Union[None, str] = None) -> b
     if message_id is not None:
         query = query.filter(Message.message_id == message_id)
     count = query.count()
-    logger.debug("Deleting %d message(s) with ID = %s", count, message_id)
+    logger.debug('Deleting %d message(s) with ID = %s', count, message_id)
     if count > 0:
         query.delete()
         db.session.commit()
