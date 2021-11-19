@@ -7,10 +7,11 @@ from models import db, Message
 from auth import Authenticator
 from src.api.mibs import mibs_blueprint
 
+db_addr = env.get('DB_ADDR')
 db_name = env.get('DB_DATABASE')
 db_user = env.get('DB_USER')
 db_pass = env.get('DB_PASSWORD')
-db_uri = f'postgresql+psycopg2://{db_user}:{db_pass}@postgres/{db_name}'
+db_uri = f'postgresql+psycopg2://{db_user}:{db_pass}@{db_addr}/{db_name}'
 
 app = Flask(__name__)
 app.config.update({
