@@ -11,20 +11,20 @@ from models import Message, EmailMessageRecipient, db
 from lib.mibs.python.openapi.swagger_server.models import MessageInABottle, EmailRecipient
 from services.email_sender import email_service
 
-class message_pooler:
+class message_pooler(Thread):
     '''
     Class responsible for pooling, updating DB and calling email service
     '''
     def __init__(self):
-
+        Thread.__init__(self)
+        Thread.start(self)
+        
+        self.daemon = True
         self._POOL_INTERVAL = 305 #seconds
         self._MSG_TIME_THRESHOLD = timedelta(minutes=5)
         self._current_time = datetime.utcnow()
         self._list_of_messages = []
         self._email_sender = email_service()
-
-        # Thread.__init__(self)
-        # self.daemon = True
         
     def run(self):
         for i in range(3):

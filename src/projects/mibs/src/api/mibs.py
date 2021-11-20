@@ -17,7 +17,7 @@ from models import Message, EmailMessageRecipient, db
 from services.messaging_service import message_pooler
 
 mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
-pooler = message_pooler()
+message_pooler()
 
 TEMP_USER_ID = 'temp-user-id'
 
@@ -27,7 +27,6 @@ def get():
     '''
     /mibs GET endpoint. See openapi file.
     '''
-    pooler.get_mibs()
     def serialize(mibs):
         if len(mibs) == 0:
             return []
