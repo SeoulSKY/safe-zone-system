@@ -18,8 +18,8 @@ class email_service:
     Class is responsible for formulating and sending email
     '''
     def __init__(self):
-        self.sender = '371emailTestBot@gmail.com'
-        self.password = 'thisistestbot371!'
+        self.sender = 'cmpt371team1@gmail.com'
+        self.password = 'mutably.gimbal9primate'
         self.transmissions = 0
         self.successful_transmissions = 0
         
@@ -32,38 +32,36 @@ class email_service:
         print(mib_with_recipients)
         recipients = mib_with_recipients["recipients"]
         self.transmissions = len(recipients)
-
-        for recipient in recipients:
-            recipient_email_address = recipient.email
-            email_body = f'Hello, \n{mib_with_recipients["message"]}'
-            email_subject = 'MIBS'
-            email_content = f"Subject: {email_subject}\n\n{email_body}"
-            
+ 
+        with smtplib.SMTP("smtp-dev", 25) as server:
             try:
-                # server.sendmail(self.sender, recipient_email_address, email_content)
-                print(email_content)
+                server.ehlo()# identifies us with mail server
+                server.set_debuglevel(1)
+                senderrs = server.sendmail(self.sender, "cvu302@usask.ca", "Testing")
                 self.successful_transmissions += 1
-                recipient_obj = EmailMessageRecipient.filter(EmailMessageRecipient.email == recipient_email_address)
-                recipient_obj.sent = True
-                db.session.add(recipient_obj)
             except smtplib.SMTPException:
-                print(f'Could not send message with id: {mib_with_recipients["messageId"]} to {recipient_email_address}')
+                print(f'Could not send message with id: {mib_with_recipients["messageId"]}')  
 
-        db.session.commit()
+        # for recipient in recipients:
+        #     recipient_email_address = recipient.email
+        #     email_body = f'Hello, \n{mib_with_recipients["message"]}'
+        #     email_subject = 'MIBS'
+        #     email_content = f"Subject: {email_subject}\n\n{email_body}"
+        #     print("Email Content:")
+        #     print(email_content)
 
-            # with smtplib.SMTP("localhost", 25) as server:
+        #     with smtplib.SMTP("host.docker.internal", 25) as server:
+        #         try:
+        #             server.set_debuglevel(2)
+        #             server.sendmail(self.sender, "cmpt371team1@gmail.com", email_content)
+        #             self.successful_transmissions += 1
+        #             recipient_obj = EmailMessageRecipient.filter(EmailMessageRecipient.email == recipient_email_address)
+        #             recipient_obj.sent = True
+        #             db.session.add(recipient_obj)
+        #         except smtplib.SMTPException:
+        #             print(f'Could not send message with id: {mib_with_recipients["messageId"]} to {recipient_email_address}')
 
-            #     try:
-            #         # server.sendmail(self.sender, recipient_email_address, email_content)
-            #         print(email_content)
-            #         self.successful_transmissions += ONE
-            #         recipient_obj = EmailMessageRecipient.filter(EmailMessageRecipient.email == recipient_email_address)
-            #         recipient_obj.sent = True
-            #         db.session.add(recipient_obj)
-            #     except smtplib.SMTPException:
-            #         print('Could not send message with id: {mib.message_id} to {recipient_email_address}')
-            #     finally:
-            #         db.session.commit()
+        # db.session.commit()
 
         if self.successful_transmissions == self.transmissions:
             #all recipients for mib got email

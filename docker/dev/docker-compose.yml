@@ -82,6 +82,14 @@ services:
       PGADMIN_DEFAULT_PASSWORD: password
     ports:
       - "5050:80"
+
+  smtp-dev:
+    build:
+      context: ../../src/projects/smtp-dev
+    environment:
+      MAILNAME: smtp-dev
+    expose:
+      - 25
 volumes:
   postgres_data:
     driver: local
