@@ -14,13 +14,10 @@ from lib.mibs.python.openapi.swagger_server.models.any_of_message_in_a_bottle_re
 from lib.mibs.python.openapi.swagger_server.models.sms_recipient import SmsRecipient
 from lib.mibs.python.openapi.swagger_server.models.user_recipient import UserRecipient
 from models import Message, EmailMessageRecipient, db
-from services.messaging_service import message_pooler
 
 mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
-message_pooler()
 
 TEMP_USER_ID = 'temp-user-id'
-
 
 @mibs_blueprint.route('', methods=['GET'])
 def get():

@@ -30,24 +30,43 @@ class email_service:
         get email and recipient attributes from mib object in list
         send email sequentially and update recipient.sent column to true
         '''
+        print("Attempting to send email...")
         self.transmissions = len(messages)
         for mib in messages:
+            print(mib)
             for recipient in mib.recipients:
                 recipient_email_address = recipient.email
                 email_body = f'Hello, \n{mib.message}'
                 email_subject = 'MIBS'
                 email_content = f"Subject: {email_subject}\n\n{email_body}"
+
             print(mib)
+            try:
+                # server.sendmail(self.sender, recipient_email_address, email_content)
+                print(email_content)
+                self.successful_transmissions += ONE
+                recipient_obj = EmailMessageRecipient.filter(EmailMessageRecipient.email == recipient_email_address)
+                recipient_obj.sent = True
+                db.session.add(recipient_obj)
+            except smtplib.SMTPException:
+                print(f'Could not send message with id: {mib.message_id} to {recipient_email_address}')
+            finally:
+                db.session.commit()
 
-            with smtplib.SMTP("localhost", 25) as server:
+            # with smtplib.SMTP("localhost", 25) as server:
 
-                try:
-                    server.sendmail(self.sender, recipient_email_address, email_content)
-                    self.successful_transmissions += ONE
-                    recipient_obj = EmailMessageRecipient.filter(EmailMessageRecipient.email == recipient_email_address)
-                    recipient_obj.sent = True
-                    db.session.add(recipient_obj)
-                except smtplib.SMTPException:
-                    print('Could not send message with id: {mib.message_id} to {recipient_email_address}')
-                finally:
-                    db.session.commit()
+            #     try:
+            #         # server.sendmail(self.sender, recipient_email_address, email_content)
+            #         print(email_content)
+            #         self.successful_transmissions += ONE
+            #         recipient_obj = EmailMessageRecipient.filter(EmailMessageRecipient.email == recipient_email_address)
+            #         recipient_obj.sent = True
+            #         db.session.add(recipient_obj)
+            #     except smtplib.SMTPException:
+            #         print('Could not send message with id: {mib.message_id} to {recipient_email_address}')
+            #     finally:
+            #         db.session.commit()
+
+        if self.successful_transmissions == self.transmissions:
+            return True
+        return False
