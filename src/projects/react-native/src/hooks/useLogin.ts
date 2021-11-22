@@ -71,9 +71,8 @@ export const useLogin = () => {
       },
       discovery
       ).then((res) => {
-        console.log();
         setTokens(res);
-      }).catch(console.error);
+      }).catch((error) => console.error(error));
     }
   };
 

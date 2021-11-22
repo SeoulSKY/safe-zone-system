@@ -1,26 +1,25 @@
-import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import React, {ReactElement} from 'react';
+import {
+  createMaterialTopTabNavigator,
+} from '@react-navigation/material-top-tabs';
+import {ActiveMibList, TemplateMibList} from '@/components/mibs/list';
+
+const Tab = createMaterialTopTabNavigator();
 
 /**
  * The Screen for the Message In a Bottle feature.
  * @method
  * @return {View}
  */
-export default function MibScreen() {
+export function MibScreen(): ReactElement {
   return (
-    <View style={styles.container}>
-      <Text>MIB Screen</Text>
-    </View>
+    <Tab.Navigator
+      screenOptions={{
+        tabBarIndicatorStyle: {backgroundColor: 'dodgerblue'},
+      }}
+    >
+      <Tab.Screen name="Active" component={ActiveMibList} />
+      <Tab.Screen name="Templates" component={TemplateMibList} />
+    </Tab.Navigator>
   );
 }
-
-const textColor = '#fff';
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    backgroundColor: textColor,
-    flex: 1,
-    justifyContent: 'center',
-  },
-});
