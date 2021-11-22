@@ -32,12 +32,14 @@ class TestAuthenticatorInit(unittest.TestCase):
     separate test case so that the authenticator can be initialized prior to 
     each test in `TestAuthenticator`.
     '''
-    def test_init_invalid_app(self):
+    def test_init_no_app(self):
         '''
-        Test that Authenticator asserts that the app parameter is valid.
+        Test that Authenticator can be initialized with no app given.
         '''
-        with self.assertRaises(AssertionError):
-            Authenticator(None)
+        auth = Authenticator()
+        self.assertIsNone(auth.issuer)
+        self.assertIsNone(auth.audience)
+        self.assertIsNone(auth.jwks_client)
 
 
     def test_no_issuer_provided(self):
@@ -82,7 +84,7 @@ class TestAuthenticatorInit(unittest.TestCase):
             Authenticator(app)
 
 
-    def test_init_valid_app_and_config(self):
+    def test_init_valid(self):
         '''
         Test that Authenticator will initialize properly when given a valid
         app and app config.
@@ -95,6 +97,25 @@ class TestAuthenticatorInit(unittest.TestCase):
             'AUTH_JWKS_URI': 'http://localhost/test/jwks',
         })
         auth = Authenticator(app)
+        self.assertEqual(auth.issuer, 'test_provider')
+        self.assertEqual(auth.audience, 'test')
+        self.assertEqual(auth.jwks_client.uri, 'http://localhost/test/jwks')
+
+
+    def test_init_valid_later(self):
+        '''
+        Test that Authenticator initialized with no app can be provided an app
+        later on.
+        '''
+        auth = Authenticator()
+        app = Flask(__name__)
+        app.config.update({
+            'TESTING': True,
+            'AUTH_ISSUER': 'test_provider',
+            'AUTH_AUDIENCE': 'test',
+            'AUTH_JWKS_URI': 'http://localhost/test/jwks',
+        })
+        auth.init_app(app)
         self.assertEqual(auth.issuer, 'test_provider')
         self.assertEqual(auth.audience, 'test')
         self.assertEqual(auth.jwks_client.uri, 'http://localhost/test/jwks')

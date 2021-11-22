@@ -66,12 +66,12 @@ class Authenticator(object):
         '''
         assert app != None
         assert 'AUTH_ISSUER' in app.config
-        assert 'AUTHAUDIENCE' in app.config
+        assert 'AUTH_AUDIENCE' in app.config
         assert 'AUTH_JWKS_URI' in app.config
         
         self.issuer = app.config['AUTH_ISSUER']
         self.audience = app.config['AUTH_AUDIENCE']
-        self.jwks_client = PyJWKClient(self.config['JWKS_URI'])
+        self.jwks_client = PyJWKClient(app.config['AUTH_JWKS_URI'])
 
         @app.errorhandler(AuthError)
         def handle_pyjwt_error(e: AuthError):
@@ -80,7 +80,7 @@ class Authenticator(object):
             function is called when AuthError is raised inside of `app`.
             '''
             body = None
-            www_auth = f'Bearer realm="{self.config["ISSUER"]}"'
+            www_auth = f'Bearer realm="{self.issuer}"'
             if e.error and e.error_description:
                 body = {
                     'error': e.error, 
