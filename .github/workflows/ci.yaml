@@ -2,7 +2,7 @@ name: ci workflow
 on:
   workflow_dispatch: 
   push:
-    branches: [ master, ID*, ci-*, 217-ci-fix]
+    branches: [ master, ID*, ci-*]
   pull_request:
     branches: [ master, ID* ]
 
