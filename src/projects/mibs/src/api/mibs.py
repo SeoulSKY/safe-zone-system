@@ -145,7 +145,6 @@ def _handle_post_put(is_put=False):
         message.email_recipients = email_recipients
 
         db.session.commit()
-        # call producer to send mib to topic
         return 'MessageInABottle was successfully updated', HTTPStatus.OK
 
     message = Message(

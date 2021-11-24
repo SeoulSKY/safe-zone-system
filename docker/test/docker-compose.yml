@@ -44,6 +44,3 @@ services:
       KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
     expose:
       - 8080
-
-    
-
