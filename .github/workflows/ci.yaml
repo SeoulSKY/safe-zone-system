@@ -252,10 +252,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Set date (UTC)
-        id: date
-        run: echo ::set-output name=date::$(date +'%Y-%m-%d-%H-%M-%S')    
-      
       - name: Set branch name
         id: branch
         run: |
@@ -310,7 +306,7 @@ jobs:
         run: | 
          if [[ (${{steps.directory-vars.outputs.cms-mibs-web}} == ${{env.true}}) && ${{steps.branch.outputs.branch}} =~ [I][D][0-9]* ]]; then
            docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}} --file ${{env.projects-dir}}/Dockerfile .
-           docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}${{needs.date-job.outputs.date}} --file ${{env.projects-dir}}/Dockerfile .
+           docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}} --file ${{env.projects-dir}}/Dockerfile .
            docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}
            docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}}       
          fi
