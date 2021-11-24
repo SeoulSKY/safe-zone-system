@@ -25,6 +25,7 @@ services:
   mibs:
     image: ${CONTAINER_REPO}/mibs:${TAG:-latest}
     environment:
+      DB_ADDR: ${DB_ADDR}
       DB_DATABASE: ${DB_MIBS_DATABASE}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
