@@ -71,6 +71,14 @@ services:
     expose:
       - 8080
 
+  smtp-dev:
+    build:
+      context: ../../src/projects/smtp-dev
+    environment:
+      MAILNAME: smtp-dev
+    expose:
+      - 25
+      
 volumes:
   postgres_data:
     driver: local
