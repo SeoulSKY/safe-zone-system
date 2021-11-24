@@ -39,9 +39,9 @@ class message_service(Process):
         self._current_time = datetime.utcnow()
         time_difference = self._current_time - self._MSG_TIME_THRESHOLD
 
-        updated_mibs = db.session.execute(sqlalchemy.text('UPDATE public."Message" SET "lastSentTime" = :current_time WHERE "lastSentTime" <= :time_diff AND "sent" = \'false\' \
-            RETURNING "messageId","message", "sendTime", "sent"'),\
-            {'current_time': self._current_time, 'time_diff':time_difference})
+        updated_mibs = db.session.execute(sqlalchemy.text('UPDATE public."Message" SET "lastSentTime" = :current_time \
+            WHERE ("lastSentTime" <= :time_diff OR "lastSentTime" IS NULL) AND "sent" = \'false\' AND "sendTime" <= :current_time \
+            RETURNING "messageId","message", "sendTime", "sent"'),{'current_time': self._current_time, 'time_diff':time_difference})
         
         for mib in updated_mibs:
             mib_message_id = mib[0]
