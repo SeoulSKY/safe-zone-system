@@ -343,7 +343,7 @@ jobs:
       ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts  
       artifact-name: artifact-${{github.job}}
       docker-dev: ${{ github.workspace }}/docker/dev
-      smoke-test-dir: ${{ github.workspace }}/smoke_tests
+      smoke-test-dir: ${{ github.workspace }}/test/smoke_tests
     steps:
       - name: checkout repo
         uses: actions/checkout@v2
@@ -363,7 +363,7 @@ jobs:
         run: docker ps
       
       - name: run smoke test scripts
-        run: python3 ./test/smoke_test.py
+        run: python3 smoke_test.py
         working-directory: ${{env.smoke-test-dir}}
         
       - name: stop containers
