@@ -343,7 +343,7 @@ jobs:
       ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts  
       artifact-name: artifact-${{github.job}}
       docker-dev: ${{ github.workspace }}/docker/dev
-      smoke-test-dir: ${{ github.workspace }}/test/smoke_tests
+      test-dir: ${{ github.workspace }}/test/
     steps:
       - name: checkout repo
         uses: actions/checkout@v2
@@ -361,10 +361,14 @@ jobs:
         
       - name: list running containers
         run: docker ps
-      
+
+      - name: install dependencies
+        run: pip install -r requirements.txt 
+        working-directory: ${{env.test-dir}}
+
       - name: run smoke test scripts
-        run: python3 smoke_test.py
-        working-directory: ${{env.smoke-test-dir}}
+        run: python3 smoke_tests/smoke_test.py
+        working-directory: ${{env.test-dir}}
         
       - name: stop containers
         if: always()
