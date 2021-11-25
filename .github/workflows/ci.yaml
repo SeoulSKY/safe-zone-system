@@ -363,7 +363,7 @@ jobs:
         run: docker ps
       
       - name: run smoke test scripts
-        run: python3 ./smoke_test.py
+        run: python3 ./test/smoke_test.py
         working-directory: ${{env.smoke-test-dir}}
         
       - name: stop containers
