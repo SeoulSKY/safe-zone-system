@@ -2,7 +2,7 @@ name: ci workflow
 on:
   workflow_dispatch: 
   push:
-    branches: [ master, ID*, ci-*]
+    branches: [ master, ID*, ci-*, 229-smoke*]
   pull_request:
     branches: [ master, ID* ]
 
@@ -343,23 +343,28 @@ jobs:
       ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts  
       artifact-name: artifact-${{github.job}}
       docker-dev: ${{ github.workspace }}/docker/dev
+      smoke-test-dir: ${{ github.workspace }}/smoke_tests
     steps:
       - name: checkout repo
         uses: actions/checkout@v2
         with:
           lfs: true
-          
+
+      - name: python setup
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
       - name: run containers
         run: docker-compose -f docker-compose.yml --env-file dev.env up -d --build
         working-directory: ${{env.docker-dev}}
         
-      - name: sleep for 30 seconds
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '30s'
-
       - name: list running containers
         run: docker ps
+      
+      - name: run smoke test scripts
+        run: python3 ./smoke_test.py
+        working-directory: ${{env.smoke-test-dir}}
         
       - name: stop containers
         if: always()
