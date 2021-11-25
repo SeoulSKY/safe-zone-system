@@ -15,19 +15,17 @@ OAUTH_PAYLOAD = 'grant_type=password&client_id=safe-zone&username=testaccount&pa
 response = requests.request("POST", OAUTH_URL, headers=OAUTH_HEADERS, data=OAUTH_PAYLOAD)
 # returns object containing these keys:
 # access_token, expires_in, refresh_expires_in, refresh_token, token_type, not-before-policy, session_state, scope
-
-token = "Bearer " + json.loads(response.text)["access_token"]
+access_token = json.loads(response.text)["access_token"]
 token_lifespan = json.loads(response.text)["expires_in"]
 refresh_token = json.loads(response.text)["refresh_token"]
 current_time = datetime.utcnow()
 token_expiration_time = current_time + timedelta(seconds=int(token_lifespan))
 
-#clientid, grant type, refreshtoken
-
+oauth_token = "Bearer " + access_token
 
 ######### MIBS SMOKE TEST #########
 mibs_url = "http://localhost/mibs/hello"
-mibs_headers = {"Authorization": token}
+mibs_headers = {"Authorization": oauth_token}
 mibs_response = requests.request("GET", mibs_url, headers=mibs_headers, data={})
 
 class TestMIBsSmokeTest(unittest.TestCase):
@@ -60,7 +58,6 @@ web_response = requests.request("GET", web_url, headers={}, data={})
 class TestWebSmokeTest(unittest.TestCase):
   def test_response_status_code(self):
     self.assertEqual(web_response.status_code, 200)
-
 
 if __name__ == '__main__':
   unittest.main()
