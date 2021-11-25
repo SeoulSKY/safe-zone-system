@@ -1,4 +1,5 @@
 from functools import wraps
+from logging import setLoggerClass
 from typing import Union
 from flask import Flask, request, jsonify, _request_ctx_stack
 from urllib.error import URLError
@@ -22,17 +23,36 @@ class Authenticator(object):
     Attributes:
         issuer: The URL of the openid connect issuer
         audience: The audience of the service
-        jwks_uri: The URI of the issuer's JWKS
+        jwks_client: the JSON Web Key Set client.
+        _app_initialized: whether or not the authenticator has been initialized
+            with a flask app.
     '''
     issuer: Union[str, None] = None
     audience: Union[str, None] = None
+    jwks_client: Union[PyJWKClient, None] = None
+    _app_initialized = False
+    
 
-    def __init__(self, app: Flask):
+    def __init__(self, app: Flask = None):
         '''
         Creates an access token authenticator for the given flask application.
+        If a flask app is provided as a parameter, the authenticator is 
+        initialized with the app; otherwise, the app is required to be 
+        initialized later using `Authenticator.init_app()`.
 
         Args:
-            app: The flask app
+            app: A flask application
+        '''
+        if app is not None:
+            self.init_app(app)
+
+
+    def init_app(self, app: Flask) -> None:
+        '''
+        Initializes a given flask application for the authenticator.
+
+        Args:
+            app: A flask application
 
         Pre-conditions:
             app != None
@@ -45,14 +65,13 @@ class Authenticator(object):
             and returns the appropriate response.
         '''
         assert app != None
-        config_keys = app.config.keys()
-        assert 'AUTH_ISSUER' in config_keys
-        assert 'AUTH_AUDIENCE' in config_keys
-        assert 'AUTH_JWKS_URI' in config_keys
-
-        self.issuer = app.config.get('AUTH_ISSUER')
-        self.audience = app.config.get('AUTH_AUDIENCE')
-        self.jwks_client = PyJWKClient(app.config.get('AUTH_JWKS_URI'))
+        assert 'AUTH_ISSUER' in app.config
+        assert 'AUTH_AUDIENCE' in app.config
+        assert 'AUTH_JWKS_URI' in app.config
+        
+        self.issuer = app.config['AUTH_ISSUER']
+        self.audience = app.config['AUTH_AUDIENCE']
+        self.jwks_client = PyJWKClient(app.config['AUTH_JWKS_URI'])
 
         @app.errorhandler(AuthError)
         def handle_pyjwt_error(e: AuthError):
@@ -79,6 +98,8 @@ class Authenticator(object):
                 'error_description': 'cannot connect to auth provider'
             }, HTTPStatus.INTERNAL_SERVER_ERROR
 
+        self._app_initialized = True
+
 
     def require_token(self, func):
         '''
@@ -87,6 +108,9 @@ class Authenticator(object):
 
         Args:
             func: the function that require_token decorates
+
+        Pre-conditions:
+            flask app is initialized for the authenticator
 
         Example:
             @app.route('/hello', methods=['POST','GET'])
@@ -99,6 +123,8 @@ class Authenticator(object):
             '''
             The route function that wrapped by require_auth
             '''
+            assert self._app_initialized is True
+
             token = get_access_token(request)
             try:
                 signing_key = self.jwks_client.get_signing_key_from_jwt(token)
