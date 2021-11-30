@@ -97,7 +97,6 @@ def _handle_post_put(is_put=False):
         if not 'recipients' in body:
             return False, ('"recipients" missing from request body', HTTPStatus.BAD_REQUEST), None
 
-
         # check if valid email
         email = body['recipients'][0]['email']
         if email is not None:
