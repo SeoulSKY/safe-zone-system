@@ -15,6 +15,11 @@ from lib.mibs.python.openapi.swagger_server.models.sms_recipient import SmsRecip
 from lib.mibs.python.openapi.swagger_server.models.user_recipient import UserRecipient
 from models import Message, EmailMessageRecipient, db
 
+
+import re # re module provides support for regular expressions
+regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b' # Make a regular expression for validating an Email
+
+
 mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
 
 TEMP_USER_ID = 'temp-user-id'
@@ -92,6 +97,13 @@ def _handle_post_put(is_put=False):
         if not 'recipients' in body:
             return False, ('"recipients" missing from request body', HTTPStatus.BAD_REQUEST), None
 
+
+        # check if valid email
+        email = body['recipients'][0]['email']
+        if email is not None:
+             if not (re.fullmatch(regex, email)):
+                        return False, ('invalid email in request body', HTTPStatus.BAD_REQUEST), None
+
         if len(body['message']) == 0:
             return False, ('message cannot be empty', HTTPStatus.BAD_REQUEST), None
 
@@ -103,6 +115,7 @@ def _handle_post_put(is_put=False):
 
         if len(email_recipients + sms_recipients + user_recipients) <= 0:
             return False, ('Must have atleast 1 recipient', HTTPStatus.BAD_REQUEST), None
+
 
         if not 'sendTime' in body:
             return False, ('"sendTime" missing from request body', HTTPStatus.BAD_REQUEST), None
