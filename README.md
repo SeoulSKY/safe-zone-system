@@ -5,7 +5,7 @@
 * [NodeJS 16](https://nodejs.org/en/)
 * [Android Studio](https://developer.android.com/studio/install)
   * Ensure `$ANDROID_HOME` and `$ANDROID_SDK` environment variables available. These are used by Expo to connect to an android emulator.
-  * Create an emulator that has a browser available.
+  * Create an emulator that has a browser available. An actual browser like Google Chrome is required, WebView does not work.
     * Pixel 5, API: 29 
 * [Docker](https://docs.docker.com/get-docker/)
 * [Docker Compose](https://docs.docker.com/compose/install/)
