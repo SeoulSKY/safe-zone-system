@@ -44,7 +44,6 @@ def get():
     def get_all_messages(user_id):
         return jsonify(serialize(Message.query.filter_by(user_id=user_id).all()))
 
-    print("I am running")
     assert request is not None
     given_id = request.args.get('messageId')
     if given_id is None:

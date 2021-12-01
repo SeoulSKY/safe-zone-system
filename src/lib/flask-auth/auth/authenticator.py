@@ -11,7 +11,7 @@ from werkzeug.local import LocalProxy
 
 
 # allows flask applications to access the auth token
-auth_token: dict = LocalProxy(lambda: 
+auth_token: dict = LocalProxy(lambda:
     getattr(_request_ctx_stack.top, 'auth_token', None)
 )
 
@@ -31,13 +31,13 @@ class Authenticator(object):
     audience: Union[str, None] = None
     jwks_client: Union[PyJWKClient, None] = None
     _app_initialized = False
-    
+
 
     def __init__(self, app: Flask = None):
         '''
         Creates an access token authenticator for the given flask application.
-        If a flask app is provided as a parameter, the authenticator is 
-        initialized with the app; otherwise, the app is required to be 
+        If a flask app is provided as a parameter, the authenticator is
+        initialized with the app; otherwise, the app is required to be
         initialized later using `Authenticator.init_app()`.
 
         Args:
@@ -68,7 +68,7 @@ class Authenticator(object):
         assert 'AUTH_ISSUER' in app.config
         assert 'AUTH_AUDIENCE' in app.config
         assert 'AUTH_JWKS_URI' in app.config
-        
+
         self.issuer = app.config['AUTH_ISSUER']
         self.audience = app.config['AUTH_AUDIENCE']
         self.jwks_client = PyJWKClient(app.config['AUTH_JWKS_URI'])
@@ -83,10 +83,10 @@ class Authenticator(object):
             www_auth = f'Bearer realm="{self.issuer}"'
             if e.error and e.error_description:
                 body = {
-                    'error': e.error, 
-                    'error_description': e.error_description 
+                    'error': e.error,
+                    'error_description': e.error_description
                 }
-                www_auth += f', error="{e.error}"' 
+                www_auth += f', error="{e.error}"'
                 www_auth += f', error_description="{e.error_description}"'
 
             return jsonify(body), e.status_code, {'WWW-Authenticate': www_auth}
@@ -124,12 +124,12 @@ class Authenticator(object):
             The route function that wrapped by require_auth
             '''
             assert self._app_initialized is True
-
+            print(request.headers)
             token = get_access_token(request)
             try:
                 signing_key = self.jwks_client.get_signing_key_from_jwt(token)
-                data: dict = decode(token, 
-                    signing_key.key, 
+                data: dict = decode(token,
+                    signing_key.key,
                     algorithms=['RS256'],
                     issuer=self.issuer,
                     audience=self.audience,
