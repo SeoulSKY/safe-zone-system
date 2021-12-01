@@ -20,7 +20,7 @@ mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
 
 TEMP_USER_ID = 'temp-user-id'
 
-LOGGER = get_logger('mibs.api')
+LOGGER = get_logger(__name__)
 
 @mibs_blueprint.route('', methods=['GET'])
 def get():

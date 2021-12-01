@@ -2,34 +2,37 @@
 Safezone Logging Module
 """
 import logging
+from flask import has_request_context, request
+from flask.logging import default_handler
 
-class _OneLineExceptionFormatter(logging.Formatter):
+class _RequestFormatter(logging.Formatter):
     '''
-        Class for printing exceptions in single line
+        Class for formatting reequests
     '''
-    def formatException(self, ei):
-        '''
-        Format an exception so that it prints on a single line.
-        '''
-        result = super().formatException(ei)
-        return repr(result)
-
     def format(self, record):
-        s = super().format(record)
-        if record.exc_text:
-            s = s.replace('\n', '') + '|'
-        return s
+        if has_request_context():
+            record.url = request.url
+            record.remote_addr = request.remote_addr
+        else:
+            record.url = None
+            record.remote_addr = None
+
+        return super().format(record)
 
 def get_logger(name):
 
-    logger = logging.getLogger(name)
-    handler = logging.StreamHandler()
-    formatter = _OneLineExceptionFormatter(
-        '[%(asctime)s] %(name)s: - %(levelname)s \n>> %(message)s','%d/%m/%Y %H:%M'
-    )
-    handler.setFormatter(formatter)
+    if name == None:
+        print("Name is required")
+        raise ValueError('A module name is required. Try get_logger(__name__)')
 
+    logger = logging.getLogger(name)
+    formatter = _RequestFormatter(
+        '[%(asctime)s]: %(name)s - %(levelname)s\n \
+            -- Remote Addr: %(remote_addr)s\n \
+            -- URL: %(url)s\n \
+            -- Message: %(message)s\n')
+    default_handler.setFormatter(formatter)
     logger.setLevel(logging.DEBUG)
-    logger.addHandler(handler)
+    logger.addHandler(default_handler)
 
     return logger
