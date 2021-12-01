@@ -19,6 +19,23 @@ test_other_user = 'other_user'
 test_message_id = 1
 test_message_id2 = 2
 
+# Generate an RSA256 public/private key pair in order to self-sign tokens
+# for testing.
+private_key = rsa.generate_private_key(
+    public_exponent=65537,
+    key_size=2048,
+    backend=default_backend()
+)
+private_pem = private_key.private_bytes(
+    serialization.Encoding.PEM,
+    serialization.PrivateFormat.TraditionalOpenSSL,
+    serialization.NoEncryption()
+).decode()
+public_pem = private_key.public_key().public_bytes(
+    serialization.Encoding.PEM,
+    serialization.PublicFormat.PKCS1
+).decode()
+
 
 class TestMibsApi(unittest.TestCase):
     '''
@@ -737,13 +754,27 @@ class TestMibsApi(unittest.TestCase):
         self.assertEqual(data[4]['message_id'], 9)
         self.assertEqual(status, HTTPStatus.OK)
 
-    # def test_get_not_authorized(self):
-    #     """
-    #     mibs-GET
-    #     Making a request from an unauthorized user
-    #     Expected outcome: no Mibs are returned with an UNAUTHORIZED response
-    #     """
-    #     pass
+    def test_get_not_authorized(self):
+        """
+        Test with invalid token
+        """
+        headers = {'alg': 'RS256', 'typ': 'JWT', 'kid': '0'}
+        payload = {
+            'iss': 'test_issuer',
+            'exp': int(time.time()) - 30,
+            'aud': 'test',
+            'sub': 'test-user',
+        }
+        access_token = jwt.encode(payload, private_pem,
+            algorithm='RS256',
+            headers=headers
+        )
+        self.populate_messages()
+        response = self.client.get('/mibs', headers={'Authenticator': 'Bearer ' + access_token})
+        status = response.status_code
+        data = response.get_json()
+        self.assertEqual([], data)
+        self.assert(HTTPStatus().UNAUTHORIZED, status)
 
     def create_email_recipient(self,
                                message_send_request_id=1,
@@ -785,11 +816,11 @@ class TestMibsApi(unittest.TestCase):
 
     def populate_messages(self):
         filler_mibs = [
-            {'message_id': 1, 'user_id': TEMP_USER_ID,
+            {'message_id': 1, 'user_id': 'test-user',
                 'message': 'This was my first mibs message!',
                 'recipients': [{'email': 'test@mail'}],
                 'send_time': '2021-10-27T23:22:19.911Z'},
-            {'message_id': 2, 'user_id': TEMP_USER_ID,
+            {'message_id': 2, 'user_id': 'test-user',
                 'message': 'This was my second mibs message!',
                 'recipients': [{'email': 'test2@mail'}],
                 'send_time': '2021-10-27T23:22:19.911Z'},
@@ -801,11 +832,11 @@ class TestMibsApi(unittest.TestCase):
                 'message': 'There are more people making messages!',
                 'recipients': [{'email': 'test4@mail'}, {'email': 'aSecond@email'}],
                 'send_time': '2021-10-27T23:22:19.911Z'},
-            {'message_id': 5, 'user_id': TEMP_USER_ID,
+            {'message_id': 5, 'user_id': 'test-user',
                 'message': 'This is actually my third message (ignore the 5)!',
                 'recipients': [{'email': 'test5@mail'}],
                 'send_time': '2021-10-27T23:22:19.911Z'},
-            {'message_id': 6, 'user_id': TEMP_USER_ID,
+            {'message_id': 6, 'user_id': 'test-user',
                 'message': 'I have a lot of messages!',
                 'recipients': [{'email': 'test6@mail'}],
                 'send_time': '2021-10-27T23:22:19.911Z'},
@@ -817,7 +848,7 @@ class TestMibsApi(unittest.TestCase):
                 'message': 'Me too!',
                 'recipients': [{'email': 'randomemail@mail'}],
                 'send_time': '2021-10-27T23:22:19.911Z'},
-            {'message_id': 9, 'user_id': TEMP_USER_ID,
+            {'message_id': 9, 'user_id': 'test-user',
                 'message': 'We are almost up to ten mibs in the db!',
                 'recipients': [{'email': 'test9@mail'}],
                 'send_time': '2021-10-27T23:22:19.911Z'}

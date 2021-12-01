@@ -14,13 +14,17 @@ from lib.mibs.python.openapi.swagger_server.models.any_of_message_in_a_bottle_re
 from lib.mibs.python.openapi.swagger_server.models.sms_recipient import SmsRecipient
 from lib.mibs.python.openapi.swagger_server.models.user_recipient import UserRecipient
 from models import Message, EmailMessageRecipient, db
+from auth import auth_token
+from auth_init import auth
 
 mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
 
 TEMP_USER_ID = 'temp-user-id'
 
+# userId = auth_token['sub']
 
 @mibs_blueprint.route('', methods=['GET'])
+@auth.require_token
 def get():
     '''
     /mibs GET endpoint. See openapi file.
@@ -40,6 +44,7 @@ def get():
     def get_all_messages(user_id):
         return jsonify(serialize(Message.query.filter_by(user_id=user_id).all()))
 
+    print("I am running")
     assert request is not None
     given_id = request.args.get('messageId')
     if given_id is None:
@@ -57,7 +62,7 @@ def get():
 
 
 @mibs_blueprint.route('', methods=['POST'])
-# TODO add authorization decorator
+@auth.require_token
 def post():
     '''
     /mibs POST endpoint. See openapi file.
@@ -200,6 +205,7 @@ def _parse_recipients(recipients: List[Union[AnyOfMessageInABottleRecipientsItem
 
 
 @mibs_blueprint.route('', methods=['PUT'])
+@auth.require_token
 def put():
     '''
     /mibs PUT endpoint. See openapi file.
@@ -208,7 +214,7 @@ def put():
 
 
 @mibs_blueprint.route('', methods=['DELETE'])
-# TODO: add decorator
+@auth.require_token
 def delete():
     '''
     /mibs DELETE endpoint. See openapi file.

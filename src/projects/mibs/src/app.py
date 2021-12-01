@@ -6,6 +6,8 @@ from os import environ as env
 from models import db, Message
 from auth import Authenticator
 from src.api.mibs import mibs_blueprint
+from auth import auth_token
+from auth_init import auth
 
 db_addr = env.get('DB_ADDR')
 db_name = env.get('DB_DATABASE')
@@ -23,7 +25,7 @@ app.config.update({
   'AUTH_JWKS_URI': 'http://keycloak:8080/auth/realms/safe-zone/protocol/openid-connect/certs',
 })
 
-auth = Authenticator(app)
+auth.init_app(app)
 
 db.init_app(app)
 with app.app_context():
@@ -35,6 +37,7 @@ def info():
     '''
     Return message for GET request
     '''
+    print(auth_token)
     if request.method == 'GET':
         return 'Hello from MIBS'
     else:
