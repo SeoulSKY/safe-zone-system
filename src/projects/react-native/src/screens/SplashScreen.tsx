@@ -1,6 +1,7 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {Button, StyleSheet, Text, View} from 'react-native';
 import {StatusBar} from 'expo-status-bar';
+import {AuthContext} from '@/common/authContext';
 
 
 /**
@@ -10,11 +11,9 @@ import {StatusBar} from 'expo-status-bar';
  *
  * @return {ReactElement} the splash screen component
  */
-export function SplashScreen(
-    {login, ready}
-  :
-    {login: ()=> void, ready: boolean}
-) {
+export function SplashScreen() {
+  const auth = useContext(AuthContext);
+
   return (
     <View style={styles.container}>
       <View style={styles.row}>
@@ -28,8 +27,8 @@ export function SplashScreen(
       <View style={[styles.row, styles.bottom]}>
         <Button
           title="Continue to Login"
-          disabled={!ready}
-          onPress={login}
+          disabled={!auth.loginReady}
+          onPress={auth.login}
         />
       </View>
       <StatusBar style="auto" />

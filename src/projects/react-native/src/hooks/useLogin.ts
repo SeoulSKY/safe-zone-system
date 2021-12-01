@@ -7,6 +7,17 @@ import {
 import {Platform} from 'react-native';
 import {safeZoneURI} from '@/common/constants';
 
+/**
+ *  Interface of the object that returned by the `useLogin()` hook.
+ */
+export interface Auth {
+  login: () => void;
+  logout: () => void;
+  loginReady: boolean;
+  loggedIn: boolean;
+  tokens: TokenResponse | null;
+}
+
 WebBrowser.maybeCompleteAuthSession();
 const clientId = 'safe-zone';
 const scopes = ['openid'];
@@ -43,7 +54,7 @@ const useProxy = Platform.select({web: false, default: false});
  * Postconditions: Discovers keycloak server.
  * @see UseLoginResponse for function specific pre and postconditions
  */
-export const useLogin = () => {
+export const useLogin = (): Auth => {
   const [tokens, setTokens] = useState<TokenResponse | null>(null);
   const discovery = useAutoDiscovery(`http://${safeZoneURI}/auth/realms/safe-zone`);
   const redirectUri = makeRedirectUri({

@@ -8,6 +8,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {SettingsScreen, MibScreen, MibsCreateScreen} from '@/screens/index'
 import {useLogin} from '@/hooks/useLogin';
 import {SplashScreen} from '@/screens/SplashScreen';
+import {AuthContext} from '@/common/authContext';
 
 const Tab = createBottomTabNavigator()
 
@@ -19,8 +20,15 @@ const Tab = createBottomTabNavigator()
 export default function App() {
   const auth = useLogin();
 
-  if (auth.loggedIn) {
+  if (!auth.loggedIn) {
     return (
+      <AuthContext.Provider value={auth}>
+        <SplashScreen />
+      </AuthContext.Provider>
+    )
+  }
+  return (
+    <AuthContext.Provider value={auth}>
       <NavigationContainer>
         <Tab.Navigator
           screenOptions={({ route, navigation }) => ({
@@ -54,7 +62,7 @@ export default function App() {
           />
           <Tab.Screen
             name="Settings"
-            children={() => <SettingsScreen logout={auth.logout}/>}
+            component={SettingsScreen}
             options={{ headerShown: true }}
           />
           <Tab.Screen
@@ -68,7 +76,6 @@ export default function App() {
         </Tab.Navigator>
         <StatusBar style="auto" />
       </NavigationContainer>
-    )
-  }
-  return <SplashScreen login={auth.login} ready={auth.loginReady}/>
+    </AuthContext.Provider>
+  )
 }

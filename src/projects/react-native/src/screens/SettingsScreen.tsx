@@ -1,4 +1,5 @@
-import React from 'react';
+import {AuthContext} from '@/common/authContext';
+import React, {useContext} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 
@@ -9,7 +10,8 @@ import {TouchableOpacity} from 'react-native-gesture-handler';
  *
  * @return {ReactElement} the settings screen component
  */
-export function SettingsScreen({logout}: {logout: () => void}) {
+export function SettingsScreen() {
+  const auth = useContext(AuthContext);
   const devOptionsEnabled = false;
 
   return (
@@ -18,7 +20,7 @@ export function SettingsScreen({logout}: {logout: () => void}) {
         <Text style={styles.title}>Account</Text>
         <View>
           <TouchableOpacity
-            onPress={logout}
+            onPress={auth.logout}
           >
             <Text style={styles.logout}>
               Log Out
