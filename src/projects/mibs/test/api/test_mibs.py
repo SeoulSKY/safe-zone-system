@@ -57,6 +57,71 @@ class TestMibsApi(unittest.TestCase):
             'sendTime': '2021-10-27T23:22:19.911Z'
         }
 
+
+        self.test_post_invalid_email_recipient = {
+            'message': 'test message',
+            'recipients': [
+            {
+                'email': 'test'
+            }
+            ],
+            'sendTime': '2021-10-27T23:22:19.911Z'
+        }
+
+        self.test_post_invalid_email_recipient_2 = {
+            'message': 'test message',
+            'recipients': [
+            {
+                'email': 'test@'
+            }
+            ],
+            'sendTime': '2021-10-27T23:22:19.911Z'
+        }
+
+        self.test_post_invalid_email_recipient_3 = {
+            'message': 'test message',
+            'recipients': [
+            {
+                'email': 'test@.com'
+            }
+            ],
+            'sendTime': '2021-10-27T23:22:19.911Z'
+        }
+
+        self.test_put_invalid_email_recipient= {
+            'messageId': 1,
+            'message': 'new test message',
+            'recipients': [
+            {
+                'email': 'test'
+            }
+            ],
+            'sendTime': '2021-10-27T23:22:19.911Z'
+        }
+
+        self.test_put_invalid_email_recipient_2= {
+            'messageId': 1,
+            'message': 'new test message',
+            'recipients': [
+            {
+                'email': 'test@'
+            }
+            ],
+            'sendTime': '2021-10-27T23:22:19.911Z'
+        }
+
+        self.test_put_invalid_email_recipient_3= {
+            'messageId': 1,
+            'message': 'new test message',
+            'recipients': [
+            {
+                'email': 'test@.com'
+            }
+            ],
+            'sendTime': '2021-10-27T23:22:19.911Z'
+        }
+
+
     def tearDown(self):
         with self.app.app_context():
             db.session.remove()
@@ -75,6 +140,73 @@ class TestMibsApi(unittest.TestCase):
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(response.data, b'Request is not JSON')
+
+    def test_post_invalid_email(self):
+        '''
+        Test POST /mibs when request body is using an invalid email
+        '''
+        # invalid email test 1
+        response = self.client.post(
+            '/mibs',
+            json=self.test_post_invalid_email_recipient
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, b'invalid email in request body')
+
+       
+        # invalid email test 2
+        response = self.client.post(
+            '/mibs',
+            json=self.test_post_invalid_email_recipient_2
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, b'invalid email in request body')
+
+
+        # invalid email test 3
+        response = self.client.post(
+            '/mibs',
+            json=self.test_post_invalid_email_recipient_3
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, b'invalid email in request body')
+
+    def test_put_invalid_email(self):
+            '''
+            Test PUT /mibs when request body is using an invalid email
+            '''
+            # invalid email test 1
+            response = self.client.put(
+                '/mibs',
+                json=self.test_put_invalid_email_recipient
+            )
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+            self.assertEqual(response.data, b'invalid email in request body')
+        
+            # invalid email test 2
+            response = self.client.put(
+                '/mibs',
+                json=self.test_put_invalid_email_recipient_2
+            )
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+            self.assertEqual(response.data, b'invalid email in request body')
+
+
+            # invalid email test 3
+            response = self.client.put(
+                '/mibs',
+                json=self.test_put_invalid_email_recipient_3
+            )
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+            self.assertEqual(response.data, b'invalid email in request body')
+
+
 
     def test_post_missing_message(self):
         '''
