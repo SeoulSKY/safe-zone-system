@@ -162,7 +162,7 @@ export function MibList({
           <Button
             title="Create MIB"
             onPress={() => {
-              navigation.navigate('Create Message in a Bottle');
+              navigation.push('Create Message');
             }}
           />
         }

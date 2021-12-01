@@ -2,6 +2,7 @@ import React, {ReactElement, useState, useEffect} from 'react';
 import {
   StyleSheet,
   SafeAreaView,
+  View,
 } from 'react-native';
 import {Recipients} from '@/components/mibs/create/recipients/Recipients';
 import {MessageModal} from '@/components/common';
@@ -79,7 +80,7 @@ export function MibsCreateScreen({
     setApiReturn('');
     setReceivedResponse(false);
     setRequestSuccessful(false);
-    navigation.navigate('Message in a Bottle');
+    navigation.goBack();
   };
 
 
@@ -95,7 +96,7 @@ export function MibsCreateScreen({
   };
 
   return (
-    <SafeAreaView style={styles.mainContainer}>
+    <View style={styles.mainContainer}>
       <Recipients
         recipients={recipients}
         setRecipients={setRecipients}
@@ -122,12 +123,13 @@ export function MibsCreateScreen({
         showOkButton={receivedResponse}
         closeModal={closeApiModal}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
+    backgroundColor: '#fff',
   },
 });
