@@ -387,6 +387,8 @@ jobs:
       api-dir: ${{ github.workspace }}/src/tools/api/
       mibs-gen-dir: ${{ github.workspace }}/src/lib/mibs/ts/
       artifact-name: artifact-${{github.job}}
+      SAFEZONE_ENVIRONMENT: production
+      SAFEZONE_HOST: safezone-test.usask.ca
 
     steps:
       - name: checkout repo
