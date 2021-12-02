@@ -36,6 +36,7 @@ services:
       DB_DATABASE: ${DB_MIBS_DATABASE}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
+      AUTH_ISSUER: ${AUTH_ISSUER}
     depends_on:
       - postgres
     expose:
@@ -78,7 +79,7 @@ services:
       MAILNAME: smtp-dev
     expose:
       - 25
-      
+
 volumes:
   postgres_data:
     driver: local
