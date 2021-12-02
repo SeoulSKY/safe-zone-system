@@ -15,7 +15,6 @@ from lib.mibs.python.openapi.swagger_server.models.sms_recipient import SmsRecip
 from lib.mibs.python.openapi.swagger_server.models.user_recipient import UserRecipient
 from models import Message, EmailMessageRecipient, db
 
-
 import re # re module provides support for regular expressions
 
 mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
@@ -97,11 +96,10 @@ def _handle_post_put(is_put=False):
 
         # check if valid email
         regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b' # Make a regular expression for validating an Email
-        if len(body['recipients']) !=0: # check that recipients field is not empty before checking valid email
+        if len(body['recipients']) != 0: # check that recipients field is not empty before checking valid email
             email = body['recipients'][0]['email']
-            if email is not None :
-                if not (re.fullmatch(regex, email)):
-                            return False, ('invalid email in request body', HTTPStatus.BAD_REQUEST), None
+            if not (re.fullmatch(regex, email)):
+                        return False, ('invalid email in request body', HTTPStatus.BAD_REQUEST), None
 
         if len(body['message']) == 0:
             return False, ('message cannot be empty', HTTPStatus.BAD_REQUEST), None
