@@ -94,15 +94,16 @@ def _handle_post_put(is_put=False):
         if not 'recipients' in body:
             return False, ('"recipients" missing from request body', HTTPStatus.BAD_REQUEST), None
 
+        if len(body['message']) == 0:
+            return False, ('message cannot be empty', HTTPStatus.BAD_REQUEST), None
+
+
         # check if valid email
         regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
         if len(body['recipients']) != 0:
             email = body['recipients'][0]['email']
             if not re.fullmatch(regex, email):
                 return False, ('invalid email in request body', HTTPStatus.BAD_REQUEST), None
-
-        if len(body['message']) == 0:
-            return False, ('message cannot be empty', HTTPStatus.BAD_REQUEST), None
 
         email_recipients, sms_recipients, user_recipients, unknown_recipients = \
             _parse_recipients(body['recipients'])
@@ -112,7 +113,6 @@ def _handle_post_put(is_put=False):
 
         if len(email_recipients + sms_recipients + user_recipients) <= 0:
             return False, ('Must have atleast 1 recipient', HTTPStatus.BAD_REQUEST), None
-
 
         if not 'sendTime' in body:
             return False, ('"sendTime" missing from request body', HTTPStatus.BAD_REQUEST), None
