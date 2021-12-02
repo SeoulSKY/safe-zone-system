@@ -8,6 +8,7 @@ from flask.helpers import url_for
 from dateutil.parser import parse as datetimeParse
 from http import HTTPStatus
 
+from lib.logger.safezone_logger import get_logger
 from lib.mibs.python.openapi.swagger_server.models import MessageInABottle, EmailRecipient
 from lib.mibs.python.openapi.swagger_server.models.any_of_message_in_a_bottle_recipients_items \
     import AnyOfMessageInABottleRecipientsItems
@@ -19,6 +20,7 @@ mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
 
 TEMP_USER_ID = 'temp-user-id'
 
+LOGGER = get_logger(__name__)
 
 @mibs_blueprint.route('', methods=['GET'])
 def get():
@@ -42,7 +44,9 @@ def get():
 
     assert request is not None
     given_id = request.args.get('messageId')
+    LOGGER.debug(f'messageID given {given_id}')
     if given_id is None:
+        LOGGER.debug(f'MessageID is none, getting messages for user ID, {TEMP_USER_ID}')
         return get_all_messages(TEMP_USER_ID), HTTPStatus.OK
 
     # message_id is given
@@ -50,6 +54,7 @@ def get():
         user_id=TEMP_USER_ID, message_id=given_id).all()
 
     if len(mib) == 0:
+        LOGGER.debug(f'no mib found for messages with ID, {given_id}')
         status = HTTPStatus.NOT_FOUND
     else:
         status = HTTPStatus.OK
@@ -98,6 +103,7 @@ def _handle_post_put(is_put=False):
         email_recipients, sms_recipients, user_recipients, unknown_recipients = \
             _parse_recipients(body['recipients'])
         if len(unknown_recipients) > 0:
+            LOGGER.debug('Unknown recipient types')
             return False, (f'Unknown recipient types: {json.dumps(unknown_recipients)}', \
                 HTTPStatus.BAD_REQUEST), None
 
@@ -169,7 +175,7 @@ def _handle_post_put(is_put=False):
 def _parse_recipients(recipients: List[Union[AnyOfMessageInABottleRecipientsItems,
         Dict[str, Any]]]) -> Tuple[EmailRecipient, SmsRecipient, UserRecipient, Dict[str, Any]]:
     '''
-    Parse a list recipeints in to their respective categories.
+    Parse a list recipients in to their respective categories.
 
     Preconditions:
         recipients is not None
@@ -233,7 +239,7 @@ def delete():
             message = 'Failed to delete all mibs: User does not have any mibs'
         else:
             message = f'Failed to delete mib with message id {message_id}'
-
+    LOGGER.debug(message)
     return message, status_code
 
 
@@ -264,6 +270,7 @@ def delete_mibs_for_user(user_id: str, message_id: Union[None, str] = None) -> b
     if message_id is not None:
         query = query.filter(Message.message_id == message_id)
     count = query.count()
+    LOGGER.debug(f'Deleting {count} message(s) with ID, {message_id}')
     if count > 0:
         query.delete()
         db.session.commit()
