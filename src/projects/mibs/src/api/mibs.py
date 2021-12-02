@@ -95,11 +95,11 @@ def _handle_post_put(is_put=False):
             return False, ('"recipients" missing from request body', HTTPStatus.BAD_REQUEST), None
 
         # check if valid email
-        regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b' # Make a regular expression for validating an Email
-        if len(body['recipients']) != 0: # check that recipients field is not empty before checking valid email
+        regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        if len(body['recipients']) != 0:
             email = body['recipients'][0]['email']
-            if not (re.fullmatch(regex, email)):
-                        return False, ('invalid email in request body', HTTPStatus.BAD_REQUEST), None
+            if not re.fullmatch(regex, email):
+                return False, ('invalid email in request body', HTTPStatus.BAD_REQUEST), None
 
         if len(body['message']) == 0:
             return False, ('message cannot be empty', HTTPStatus.BAD_REQUEST), None
