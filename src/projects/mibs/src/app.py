@@ -20,7 +20,7 @@ app.config.update({
   'SQLALCHEMY_DATABASE_URI': db_uri,
   'SQLALCHEMY_TRACK_MODIFICATIONS': False,
 
-  'AUTH_ISSUER': 'http://localhost/auth/realms/safe-zone',
+  'AUTH_ISSUER': "http://10.0.0.63/auth/realms/safe-zone",
   'AUTH_AUDIENCE': 'account',
   'AUTH_JWKS_URI': 'http://keycloak:8080/auth/realms/safe-zone/protocol/openid-connect/certs',
 })
@@ -37,7 +37,6 @@ def info():
     '''
     Return message for GET request
     '''
-    print(auth_token)
     if request.method == 'GET':
         return 'Hello from MIBS'
     else:

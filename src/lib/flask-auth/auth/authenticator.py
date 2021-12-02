@@ -124,7 +124,6 @@ class Authenticator(object):
             The route function that wrapped by require_auth
             '''
             assert self._app_initialized is True
-            print(request.headers)
             token = get_access_token(request)
             try:
                 signing_key = self.jwks_client.get_signing_key_from_jwt(token)
