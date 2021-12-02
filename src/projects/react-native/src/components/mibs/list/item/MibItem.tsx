@@ -1,59 +1,61 @@
-import React, {ReactElement} from 'react';
+import React, {ReactElement, useContext} from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { MessageInABottle } from 'mibs'
+import { MessageInABottle } from 'mibs';
 import MibItemHeader from './MibItemHeader';
-import { mibsApi } from '@/common/api';
+import { MibsUpdateContext } from '@/common/mibsContext';
 
 
 /**
  * A Message in a Bottle as a list item.
  * 
  * If the `active` prop does not exist, `MibItem` function the same as if was `false`.
- * @param mib the message in a bottle data
  * @returns A Message in a Bottle list item component.
  */
 export function MibItem({
-  deleteItem,
   openModal,
   message,
   active = undefined,
+  navigation,
 }: {
-  deleteItem: Function,
-  openModal: Function,
+  openModal: (msg: string) => void,
   message: MessageInABottle,
-  active: boolean
+  active: boolean,
+  navigation: Navigation,
 }): ReactElement {
+  const {setMibsUpdate} = useContext(MibsUpdateContext);
   
+  /**
+   * Handles when the cancel button for a message in a bottle is pressed.
+   * 
+   * Pre-conditions:
+   *  global.mibsApi exists
+   * 
+   * Post-conditions:
+   *  signals that mibs requires an update
+   *  opens a model on failure
+   */
+  const onCancelPress = () => {
+    global.mibsApi.deleteMessage(message.messageId)
+      .then(() => setMibsUpdate(true))
+      .catch(() => openModal('Failed to delete mib. Try again later'));
+  }
+
   /**
    * Handles when the message in a bottle item itself is pressed.
    * This function should open a new view for the item.
-   */
-  const mibItemPress = () => {
-    
-  }
-
-  /**
-   * Handles when the cancel button is pressed.
    * 
    * Pre-conditions:
-   *   active is true
-   */
-  const cancelButtonPress = () => {
-
-  }
-
-   /**
-   * Handles when the set button is pressed.
+   *  the screen 'View Message' exists
    * 
-   * Pre-conditions:
-   *   active is false or undefined
+   * Post-conditions:
+   *  opens the view message screen for this message
    */
-  const setButtonPress = () => {
-
+  const onPress = () => {
+    navigation.navigate('View Message', {message, onCancelPress});
   }
 
   return (
-    <TouchableOpacity key={message.message_id} onPress={mibItemPress}>
+    <TouchableOpacity key={message.messageId} onPress={onPress}>
       <View style={styles.item}>
         <MibItemHeader message={message} active={active}/>
         <View style={styles.body}>
@@ -62,22 +64,12 @@ export function MibItem({
           </Text>
           <TouchableOpacity 
             style={styles.iconButton} 
-            onPress={() => {
-              global.mibsApi.deleteMessage(message.message_id)
-                .then(() => deleteItem(message.message_id))
-                .catch(() => openModal('Failed to delete mib. Try again later'));
-            }}
+            onPress={onCancelPress}
             hitSlop={{top: 20, bottom: 20, left: 4, right: 20}}
           >
-            {
-              active ? 
-                <Text style={[{color:'lightcoral', fontSize: 16}]}>
-                  Cancel
-                </Text> :
-                <Text style={[{color:'mediumseagreen', fontSize: 16}]}>
-                  Set
-                </Text>
-            }
+            <Text style={styles.cancelButtonText}>
+              Cancel
+            </Text> 
           </TouchableOpacity>
         </View>
       </View>
@@ -110,5 +102,9 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     height: '100%',
     justifyContent: 'center',
-  }
+  },
+  cancelButtonText: {
+    color:'red', 
+    fontSize: 16,
+  },
 });

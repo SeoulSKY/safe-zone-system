@@ -1,19 +1,20 @@
 import 'react-native-url-polyfill/auto';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {StatusBar} from 'expo-status-bar';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {NavigationContainer} from '@react-navigation/native'
 import {Ionicons} from '@expo/vector-icons';
-import {SettingsScreen, MibScreen, MibsCreateScreen} from '@/screens/index'
+import {SettingsScreen, MibScreen, MibsCreateScreen, 
+  MibItemViewScreen, MibsEditScreen} from '@/screens/index'
 import {useLogin} from '@/hooks/useLogin';
 import {SplashScreen} from '@/screens/SplashScreen';
 import {AuthContext} from '@/common/authContext';
-import { createStackNavigator } from '@react-navigation/stack';
+import {createStackNavigator} from '@react-navigation/stack';
+import {MibsUpdateContext} from '@/common/mibsContext';
 
 const Tab = createBottomTabNavigator()
 const Stack = createStackNavigator()
-
 
 /**
  * The Base Application.
@@ -24,6 +25,7 @@ const Stack = createStackNavigator()
  */
 export default function App() {
   const auth = useLogin();
+  const [mibsUpdate, setMibsUpdate] = useState(true);
 
   if (!auth.loggedIn) {
     return (
@@ -34,24 +36,31 @@ export default function App() {
   }
   return (
     <AuthContext.Provider value={auth}>
-      <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="MainApp"
-            component={MainApp}
-            options={{headerShown: false}}
-          />
-          <Stack.Screen
-            name="Create Message"
-            component={MibsCreateScreen}
-          />
-          <Stack.Screen
-            name="Edit Message"
-            component={MibsCreateScreen}
-          />
-        </Stack.Navigator>
-        <StatusBar style="auto" />
-      </NavigationContainer>
+      <MibsUpdateContext.Provider value={{mibsUpdate, setMibsUpdate}}>
+        <NavigationContainer>
+          <Stack.Navigator>
+            <Stack.Screen
+              name="MainApp"
+              component={MainApp}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="Create Message"
+              component={MibsCreateScreen}
+            />
+            <Stack.Screen
+              name="Edit Message"
+              component={MibsEditScreen}
+            />
+            <Stack.Screen
+              name="View Message"
+              component={MibItemViewScreen}
+              options={{title: ''}}
+            />
+          </Stack.Navigator>
+          <StatusBar style="auto" />
+        </NavigationContainer>
+      </MibsUpdateContext.Provider>
     </AuthContext.Provider>
   )
 }
