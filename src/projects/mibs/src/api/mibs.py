@@ -15,7 +15,7 @@ from lib.mibs.python.openapi.swagger_server.models.any_of_message_in_a_bottle_re
 from lib.mibs.python.openapi.swagger_server.models.sms_recipient import SmsRecipient
 from lib.mibs.python.openapi.swagger_server.models.user_recipient import UserRecipient
 from models import Message, EmailMessageRecipient, db
-from auth import auth_token
+from auth.authenticator import auth_token
 from auth_init import auth
 
 mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
