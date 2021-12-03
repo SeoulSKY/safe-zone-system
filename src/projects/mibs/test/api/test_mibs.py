@@ -58,7 +58,7 @@ class TestMibsApi(unittest.TestCase):
         }
 
 
-        self.test_post_invalid_email_recipient = {
+        self.test_post_invalid_email_recipient_1 = {
             'message': 'test message',
             'recipients': [
             {
@@ -88,7 +88,7 @@ class TestMibsApi(unittest.TestCase):
             'sendTime': '2021-10-27T23:22:19.911Z'
         }
 
-        self.test_put_invalid_email_recipient= {
+        self.test_put_invalid_email_recipient_1= {
             'messageId': 1,
             'message': 'new test message',
             'recipients': [
@@ -121,12 +121,10 @@ class TestMibsApi(unittest.TestCase):
             'sendTime': '2021-10-27T23:22:19.911Z'
         }
 
-
     def tearDown(self):
         with self.app.app_context():
             db.session.remove()
             db.drop_all()
-
 
     def test_post_not_json(self):
         '''
@@ -141,30 +139,33 @@ class TestMibsApi(unittest.TestCase):
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(response.data, b'Request is not JSON')
 
-    def test_post_invalid_email(self):
+    def test_post_invalid_email_1(self):
         '''
         Test POST /mibs when request body is using an invalid email
         '''
-        # invalid email test 1
         response = self.client.post(
             '/mibs',
-            json=self.test_post_invalid_email_recipient
+            json=self.test_post_invalid_email_recipient_1
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(response.data, b'invalid email in request body')
 
-        # invalid email test 2
+    def test_post_invalid_email_2(self):
+        '''
+        Test POST /mibs when request body is using an invalid email
+        '''
         response = self.client.post(
             '/mibs',
             json=self.test_post_invalid_email_recipient_2
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-        self.assertEqual(response.data, b'invalid email in request body')
 
-
-        # invalid email test 3
+    def test_post_invalid_email_3(self):
+        '''
+        Test POST /mibs when request body is using an invalid email
+        '''
         response = self.client.post(
             '/mibs',
             json=self.test_post_invalid_email_recipient_3
@@ -173,20 +174,22 @@ class TestMibsApi(unittest.TestCase):
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(response.data, b'invalid email in request body')
 
-    def test_put_invalid_email(self):
+    def test_put_invalid_email_1(self):
         '''
         Test PUT /mibs when request body is using an invalid email
         '''
-        # invalid email test 1
         response = self.client.put(
             '/mibs',
-            json=self.test_put_invalid_email_recipient
+            json=self.test_put_invalid_email_recipient_1
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(response.data, b'invalid email in request body')
 
-        # invalid email test 2
+    def test_put_invalid_email_2(self):
+        '''
+        Test PUT /mibs when request body is using an invalid email
+        '''
         response = self.client.put(
             '/mibs',
             json=self.test_put_invalid_email_recipient_2
@@ -195,8 +198,10 @@ class TestMibsApi(unittest.TestCase):
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(response.data, b'invalid email in request body')
 
-
-        # invalid email test 3
+    def test_put_invalid_email_3(self):
+        '''
+        Test PUT /mibs when request body is using an invalid email:
+        '''
         response = self.client.put(
             '/mibs',
             json=self.test_put_invalid_email_recipient_3
