@@ -2,14 +2,17 @@ import React, {ReactElement, useState} from 'react';
 import {Button, FlatList, StyleSheet, Text, View} from 'react-native';
 import {EmailRecipient, SmsRecipient, UserRecipient} from 'mibs';
 import {AddRecipientModal} from '@/components/mibs/create/recipients/AddRecipientModal';
+import { error } from 'console';
 
 
 export function Recipients({
   recipients,
   setRecipients,
+  err,
 }: {
   recipients: Array,
   setRecipients: (x: Array) => void,
+  err: String
 }) : ReactElement {
 
   const [showAddRecipientModal, setShowAddRecipientModal] = useState(false);
@@ -23,12 +26,18 @@ export function Recipients({
   };
 
   const addRecipient = (dropdownValue, newRecipientValue) => {
-    setRecipients(previousRecipients => {
-      return [
-        ...previousRecipients,
-        {type: dropdownValue, value: newRecipientValue},
-      ];
+    setRecipients(recipients => {
+      if(!recipients.map(r => r.value).includes(newRecipientValue)){
+       err = ''
+        return [
+          ...recipients,
+          { type: dropdownValue, value: newRecipientValue },
+        ];
+      }
+      err = `${newRecipientValue} is already is a recipient`
+      return recipients
     });
+      return err
   };
 
   const deleteRecipient = (recipientToDelete) => {

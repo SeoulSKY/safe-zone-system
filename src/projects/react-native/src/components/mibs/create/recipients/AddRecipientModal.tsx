@@ -7,10 +7,12 @@ export function AddRecipientModal({
   showModal,
   closeModal,
   addRecipient,
+  err,
 }: {
   showModal: boolean,
   closeModal: () => void,
-  addRecipient: () => void,
+  addRecipient: () => String,
+  err: String
 }): ReactElement {
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -32,9 +34,15 @@ export function AddRecipientModal({
   }
 
   const addAndClose = () => {
-    addRecipient(recipientType, recipientValue);
-    close();
+    err=addRecipient(recipientType, recipientValue);
+    if(err === ''){
+      close();
+    }
+    else {
+      console.error(err)
+    }  
   }
+
 
   return (
     <Modal
@@ -65,6 +73,7 @@ export function AddRecipientModal({
             button2Text='Add recipient'
             button2Function={addAndClose}
           />
+          
         </View>
       </View>
     </Modal>
@@ -117,4 +126,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     fontSize: 14,
   },
+  error:{
+    color: 'red',
+    textAlign: 'left'
+  }
 });
