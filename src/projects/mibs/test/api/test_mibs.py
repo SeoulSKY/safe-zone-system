@@ -181,7 +181,8 @@ class TestMibsApi(unittest.TestCase):
         '''
         response = self.client.post(
             '/mibs',
-            json=self.test_post_invalid_email_recipient_1
+            json=self.test_post_invalid_email_recipient_1,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -193,7 +194,8 @@ class TestMibsApi(unittest.TestCase):
         '''
         response = self.client.post(
             '/mibs',
-            json=self.test_post_invalid_email_recipient_2
+            json=self.test_post_invalid_email_recipient_2,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -204,7 +206,8 @@ class TestMibsApi(unittest.TestCase):
         '''
         response = self.client.post(
             '/mibs',
-            json=self.test_post_invalid_email_recipient_3
+            json=self.test_post_invalid_email_recipient_3,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -216,7 +219,8 @@ class TestMibsApi(unittest.TestCase):
         '''
         response = self.client.put(
             '/mibs',
-            json=self.test_put_invalid_email_recipient_1
+            json=self.test_put_invalid_email_recipient_1,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -228,7 +232,8 @@ class TestMibsApi(unittest.TestCase):
         '''
         response = self.client.put(
             '/mibs',
-            json=self.test_put_invalid_email_recipient_2
+            json=self.test_put_invalid_email_recipient_2,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -240,7 +245,8 @@ class TestMibsApi(unittest.TestCase):
         '''
         response = self.client.put(
             '/mibs',
-            json=self.test_put_invalid_email_recipient_3
+            json=self.test_put_invalid_email_recipient_3,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
