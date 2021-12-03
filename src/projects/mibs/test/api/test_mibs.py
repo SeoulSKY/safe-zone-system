@@ -3,7 +3,8 @@
 '''
 import unittest
 
-import time, jwt
+import time
+import jwt
 import re
 from urllib.parse import urlparse, parse_qs
 from dateutil.parser import parse as datetimeParse
@@ -16,7 +17,6 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from auth_init import auth
-from jwt import PyJWKClient
 from unittest.mock import MagicMock
 
 test_email = 'test@email.com'
@@ -898,7 +898,7 @@ class TestMibsApi(unittest.TestCase):
             db.session.commit()
 
 
-    def get_token(is_valid=True):
+    def get_token(self, is_valid=True):
         if is_valid:
             headers = {'alg': 'RS256', 'typ': 'JWT', 'kid': '0'}
             payload = {
