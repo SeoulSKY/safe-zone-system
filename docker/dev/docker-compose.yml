@@ -8,24 +8,24 @@ services:
       - 80:80
     restart: always
     depends_on:
-      - web
-      - cms
+      # - web
+      # - cms
       - mibs
       - keycloak
 
-  web:
-    build:
-      context: ../../src
-      dockerfile: projects/web/Dockerfile
-    expose:
-      - 80
+  # web:
+  #   build:
+  #     context: ../../src
+  #     dockerfile: projects/web/Dockerfile
+  #   expose:
+  #     - 80
 
-  cms:
-    build:
-      context: ../../src
-      dockerfile: projects/cms/Dockerfile
-    expose:
-      - 80
+  # cms:
+  #   build:
+  #     context: ../../src
+  #     dockerfile: projects/cms/Dockerfile
+  #   expose:
+  #     - 80
 
   mibs:
     build:
