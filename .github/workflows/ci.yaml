@@ -84,7 +84,7 @@ jobs:
 
       - name: testing python projects
         run: |
-            export PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/${{env.project-path}}/${{ matrix.dir }}/src:${{ github.workspace }}/src:${{env.lib-path}}:${{env.lib-path}}/mibs/python/openapi
+            export PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/${{env.project-path}}/${{ matrix.dir }}/src:${{ github.workspace }}/src:${{env.lib-path}}:${{env.auth-path}}/${{env.lib-path}}/mibs/python/openapi
             python -m unittest discover
         working-directory: ${{env.project-path}}/${{ matrix.dir }}
 
