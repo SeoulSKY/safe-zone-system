@@ -7,7 +7,8 @@ const apiConfiguration = new Configuration({
 });
 
 export const updateToken = (accessToken?: string) => {
-  apiConfiguration.baseOptions = {headers: {Authorization: `Bearer ${accessToken}`}};
+  apiConfiguration.baseOptions = {headers:
+    {Authorization: `Bearer ${accessToken}`}};
   updateMibsApi();
 };
 
@@ -20,7 +21,6 @@ export const updateTarget = (newTargetServerAddress: string) => {
 
 const updateMibsApi = () => {
   global.mibsApi = new MibsApi(apiConfiguration);
-  console.log({apiConfiguration})
 };
 
 updateTarget(safeZoneURI);

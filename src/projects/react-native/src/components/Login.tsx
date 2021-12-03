@@ -1,7 +1,6 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {Button} from 'react-native';
 import {useLogin} from '@/hooks/useLogin'; // TODO set configuration
-import {updateToken} from '@/common/api'
 
 /**
  * A login button for the safe-zone keycloak server
@@ -15,7 +14,7 @@ import {updateToken} from '@/common/api'
  * @return {ReactElement}
  */
 export const Login = () => {
-  const {login, logout, loginReady, loggedIn, tokens} = useLogin();
+  const {login, logout, loginReady, loggedIn} = useLogin();
   if (loggedIn) {
     return (
       <Button
