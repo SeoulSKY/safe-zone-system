@@ -1,15 +1,16 @@
 import 'react-native-url-polyfill/auto';
 
-import React, {useState} from 'react';
+import React, {useEffect}, {useState} from 'react';
 import {StatusBar} from 'expo-status-bar';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {NavigationContainer} from '@react-navigation/native'
 import {Ionicons} from '@expo/vector-icons';
-import {SettingsScreen, MibScreen, MibsCreateScreen, 
+import {SettingsScreen, MibScreen, MibsCreateScreen,
   MibItemViewScreen, MibsEditScreen} from '@/screens/index'
 import {useLogin} from '@/hooks/useLogin';
 import {SplashScreen} from '@/screens/SplashScreen';
 import {AuthContext} from '@/common/authContext';
+import {updateToken} from '@/common/api';
 import {createStackNavigator} from '@react-navigation/stack';
 import {MibsUpdateContext} from '@/common/mibsContext';
 
@@ -18,13 +19,12 @@ const Stack = createStackNavigator()
 
 /**
  * The Base Application.
- * This component handles user authentication and the base level navigation
- * within the app.
- * Screens that overlay the main application should included here so that they
- * take up the entirety of the screen.
+ *
+ * This component handles user authentication and the base level navigation within the app.
  */
 export default function App() {
   const auth = useLogin();
+  useEffect(() => {updateToken(auth?.tokens?.accessToken)}, [auth]);
   const [mibsUpdate, setMibsUpdate] = useState(true);
 
   if (!auth.loggedIn) {
@@ -94,7 +94,7 @@ export default function App() {
       <Tab.Screen
         name="Message in a Bottle"
         component={MibScreen}
-        options={{ 
+        options={{
           headerShown: true,
           headerStyle: {
             elevation: 0,

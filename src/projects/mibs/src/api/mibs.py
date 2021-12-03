@@ -15,14 +15,15 @@ from lib.mibs.python.openapi.swagger_server.models.any_of_message_in_a_bottle_re
 from lib.mibs.python.openapi.swagger_server.models.sms_recipient import SmsRecipient
 from lib.mibs.python.openapi.swagger_server.models.user_recipient import UserRecipient
 from models import Message, EmailMessageRecipient, db
+from auth import auth_token
+from auth_init import auth
 
 mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
-
-TEMP_USER_ID = 'temp-user-id'
 
 LOGGER = get_logger(__name__)
 
 @mibs_blueprint.route('', methods=['GET'])
+@auth.require_token
 def get():
     '''
     /mibs GET endpoint. See openapi file.
@@ -44,14 +45,13 @@ def get():
 
     assert request is not None
     given_id = request.args.get('messageId')
-    LOGGER.debug(f'messageID given {given_id}')
+    user_id = auth_token['sub']
     if given_id is None:
-        LOGGER.debug(f'MessageID is none, getting messages for user ID, {TEMP_USER_ID}')
-        return get_all_messages(TEMP_USER_ID), HTTPStatus.OK
+        return get_all_messages(user_id), HTTPStatus.OK
 
     # message_id is given
     mib = Message.query.filter_by(
-        user_id=TEMP_USER_ID, message_id=given_id).all()
+        user_id=user_id, message_id=given_id).all()
 
     if len(mib) == 0:
         LOGGER.debug(f'no mib found for messages with ID, {given_id}')
@@ -62,7 +62,7 @@ def get():
 
 
 @mibs_blueprint.route('', methods=['POST'])
-# TODO add authorization decorator
+@auth.require_token
 def post():
     '''
     /mibs POST endpoint. See openapi file.
@@ -120,9 +120,10 @@ def _handle_post_put(is_put=False):
                 HTTPStatus.BAD_REQUEST), None
 
         message = None
+        user_id = auth_token['sub']
         if is_put:
             message = Message.query \
-                .filter_by(message_id=int(body['messageId']), user_id=TEMP_USER_ID).first()
+                .filter_by(message_id=int(body['messageId']), user_id=user_id).first()
             if message is None:
                 return False, \
                     (f'a message with messageId={body["messageId"]} could not be found',
@@ -160,7 +161,7 @@ def _handle_post_put(is_put=False):
         return 'MessageInABottle was successfully updated', HTTPStatus.OK
 
     message = Message(
-        user_id=TEMP_USER_ID,
+        user_id=auth_token['sub'],
         message=mib.message,
         send_time=mib.send_time,
         email_recipients=email_recipients
@@ -206,6 +207,7 @@ def _parse_recipients(recipients: List[Union[AnyOfMessageInABottleRecipientsItem
 
 
 @mibs_blueprint.route('', methods=['PUT'])
+@auth.require_token
 def put():
     '''
     /mibs PUT endpoint. See openapi file.
@@ -214,7 +216,7 @@ def put():
 
 
 @mibs_blueprint.route('', methods=['DELETE'])
-# TODO: add decorator
+@auth.require_token
 def delete():
     '''
     /mibs DELETE endpoint. See openapi file.
@@ -224,7 +226,7 @@ def delete():
 
     message_id = None if message_id_unparsed is None else int(
         message_id_unparsed)
-    user_id = TEMP_USER_ID
+    user_id = auth_token['sub']
 
     status_code = HTTPStatus.OK
 

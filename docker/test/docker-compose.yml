@@ -29,6 +29,7 @@ services:
       DB_DATABASE: ${DB_MIBS_DATABASE}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
+      AUTH_ISSUER: ${AUTH_ISSUER}
     expose:
       - 80
 
@@ -45,6 +46,3 @@ services:
       KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
     expose:
       - 8080
-
-    
-

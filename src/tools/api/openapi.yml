@@ -1,4 +1,6 @@
 openapi: 3.0.0
+security:
+  - authenticator
 info:
   title: Message In A Bottle Service (MIBS)
   description: Server responsible for handling "messages in a bottle".
@@ -9,14 +11,14 @@ paths:
       summary: Returns message(s) in a bottle for the user.
       description: |
         Gets a single MessageInABottle if the messageId is present,
-        otherwise if not messageId is present get all MessageInABottle for 
+        otherwise if not messageId is present get all MessageInABottle for
         the current user.
-        
-            Precondition: 
+
+            Precondition:
               - User is authorized.
               - If messageId is present then a MessageInABottle with messageId
               must exist for the user
-            
+
             Postcondition: An list of 0 or more MessageInABottle.
               Case: messageId present.
                 A list of 1 MessageInABottle depending.
@@ -35,33 +37,33 @@ paths:
       responses:
         '200':
           description: |
-            A JSON array of all MessageInABottle for the user if no 
-            messageId is specified, otherwise if a messageId is specified, return 
+            A JSON array of all MessageInABottle for the user if no
+            messageId is specified, otherwise if a messageId is specified, return
             only the MessageInABottle that corresponds to that messageId.
           content:
             application/json:
               schema:
                 type: array
-                items: 
+                items:
                   $ref: '#/components/schemas/MessageInABottle'
         '401':
           description: User is not authorized.
         '404':
-          description: User does not have a MessageInABottle with a messageId of 
+          description: User does not have a MessageInABottle with a messageId of
             messageId.
-  
+
     post:
       summary: Creates a message in a bottle for the user.
       description: |
         Persist a new a MessageInABottle for an authorized user.
-        
-            Precondition: 
-              - User is authorized. 
-                
-            Postconditon: 
-            - A MessageInABottle is created for the user with the 
+
+            Precondition:
+              - User is authorized.
+
+            Postconditon:
+            - A MessageInABottle is created for the user with the
             supplied detailes and persisted in the database.
-            
+
             Note: messageId will be ignored if present in the request body.
       operationId: createMessage
       tags:
@@ -81,7 +83,7 @@ paths:
               schema:
                 type: string
               description: '/?messageId=\<new messageId>'
-                
+
         '400':
           description: Request body does not contain required parameters.
         '401':
@@ -91,12 +93,12 @@ paths:
       summary: Updates a message in a bottle for the user.
       description: |
         Persist changes to a MessageInABottle for an authorized user.
-        
-            Precondition: 
+
+            Precondition:
               - User is authorized.
               - A MessageInABottle with messageId exists for the user.
-                
-            Postconditon: The MessageInABottle with the messageId is updated 
+
+            Postconditon: The MessageInABottle with the messageId is updated
             to the supplied MessageInABottle in the request body.
       operationId: updateMessage
       tags:
@@ -107,7 +109,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MessageInABottle'
-              required: 
+              required:
                 - messageId
       responses:
         '200':
@@ -116,25 +118,25 @@ paths:
           description: Request body does not contain required parameters.
         '401':
           description: User is not authorized.
-          
-    delete: 
+
+    delete:
       summary: Deletes message(s) in a bottle for the user.
       description: |
-        Deletes a single MessageInABottle or all MessageInABottles 
+        Deletes a single MessageInABottle or all MessageInABottles
         for an authorized user.
-        
-            Precondition: 
+
+            Precondition:
               - User is authorized.
               - If messageId is present then a MessageInABottle with messageId
                 must exist for the user.
-            
-            Postcondition: Deletes a single MessageInABottle or all 
+
+            Postcondition: Deletes a single MessageInABottle or all
               MessageInABottles.
               Case: messageId present.
                 Deletes a message MessageInABottle with messageId in the database.
               Case: messageId is not present.
                 Deletes all MessageInABottles for the user.
-      
+
       operationId: deleteMessage
       tags:
         - mibs
@@ -150,7 +152,7 @@ paths:
         '401':
           description: User is not authorized.
         '404':
-          description: User does not have a MessageInABottle with a messageId of 
+          description: User does not have a MessageInABottle with a messageId of
             messageId.
 
 components:
@@ -160,7 +162,7 @@ components:
       properties:
         messageId:
           type: integer
-        message: 
+        message:
           type: string
         recipients:
           type: array
@@ -169,29 +171,33 @@ components:
               - $ref: '#/components/schemas/EmailRecipient'
               - $ref: '#/components/schemas/SmsRecipient'
               - $ref: '#/components/schemas/UserRecipient'
-        sendTime: 
+        sendTime:
           type: string
           format: date-time
           description: An ISO-8601 UTC date time string. 2021-10-26T03:14:51.657Z
-          
+
       required:
        - message
        - recipients
     EmailRecipient:
       type: object
       properties:
-        email: 
+        email:
           type: string
-        
+
     SmsRecipient:
       type: object
       properties:
-        phoneNumber: 
+        phoneNumber:
           type: string
-        
+
     UserRecipient:
       type: object
       properties:
-        userId: 
+        userId:
           type: string
-          
+  securitySchemes:
+    authenticator:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
