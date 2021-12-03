@@ -1,4 +1,5 @@
 import {EmailRecipient, SmsRecipient, UserRecipient} from 'mibs';
+import {assert} from './assertions';
 
 export type Recipient = EmailRecipient | SmsRecipient | UserRecipient;
 
@@ -43,6 +44,8 @@ export const isUser = (
 export function recipientToString(
     recipient: Recipient
 ): string | null {
+  assert(isEmail(recipient) ||
+    isSMS(recipient) || isUser(recipient), 'Invalid recipient');
   if (isEmail(recipient)) {
     return recipient.email ? recipient.email : null;
   }

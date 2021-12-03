@@ -3,6 +3,7 @@ import {useEffect, useState} from 'react';
 import {production, safeZoneURI} from '@/common/constants';
 import {updateTarget} from '@/common/api';
 import {StyleSheet, Text, TextInput} from 'react-native';
+import { assert } from 'console';
 
 export const ServerSelector =
 ({onUpdate}: {onUpdate: (server: string) => void}) => {

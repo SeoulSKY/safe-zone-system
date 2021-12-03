@@ -6,6 +6,7 @@ import {MessageContainer, SendDatePicker} from '@/components/mibs/create';
 import {EmailRecipient, MessageInABottle} from 'mibs';
 import {MibsUpdateContext} from '@/common/mibsContext';
 import {isEmail, isSMS, isUser, Recipient} from '@/common/util';
+import {assert} from '@/common/assertions';
 
 
 /**
@@ -23,8 +24,11 @@ export function MibsEditScreen({
   route: Route,
   navigation: Navigation,
 }): ReactElement {
+  assert(!!route.params.message, 'route.params.message does not exist');
   const oldMib = route.params.message;
   const oldRecipients = oldMib.recipients.map((recipient: Recipient) => {
+    assert(isEmail(recipient) ||
+      isSMS(recipient) || isUser(recipient), 'Invalid recipient');
     if (isEmail(recipient)) {
       return {type: 'email', value: recipient.email};
     }

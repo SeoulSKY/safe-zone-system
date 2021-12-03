@@ -35,10 +35,10 @@ export default function MibItemHeader({
   /**
    * Updates the countdown Interval when the send time of the message is
    * changed.
-   * 
+   *
    * Pre-conditions:
    *  countdownInterval exists
-   * 
+   *
    * Post-conditions:
    *  updates the interval to use the new state
    */
@@ -48,11 +48,11 @@ export default function MibItemHeader({
       countdownInterval.current = setInterval(refreshCountdown, 1000);
     }
   }
-  
+
   useEffect(updateCountdownInterval, [message.sendTime])
 
   useEffect(() => {
-    if (active) { 
+    if (active) {
       refreshCountdown();
       return function cleanup() {
         clearInterval(countdownInterval.current);
