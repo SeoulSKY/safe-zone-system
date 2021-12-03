@@ -19,10 +19,6 @@ from auth_init import auth
 
 mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
 
-TEMP_USER_ID = 'temp-user-id'
-
-# userId = auth_token['sub']
-
 @mibs_blueprint.route('', methods=['GET'])
 @auth.require_token
 def get():
@@ -46,12 +42,13 @@ def get():
 
     assert request is not None
     given_id = request.args.get('messageId')
+    user_id = auth_token['sub']
     if given_id is None:
-        return get_all_messages(TEMP_USER_ID), HTTPStatus.OK
+        return get_all_messages(user_id), HTTPStatus.OK
 
     # message_id is given
     mib = Message.query.filter_by(
-        user_id=TEMP_USER_ID, message_id=given_id).all()
+        user_id=user_id, message_id=given_id).all()
 
     if len(mib) == 0:
         status = HTTPStatus.NOT_FOUND
@@ -118,9 +115,10 @@ def _handle_post_put(is_put=False):
                 HTTPStatus.BAD_REQUEST), None
 
         message = None
+        user_id = auth_token['sub']
         if is_put:
             message = Message.query \
-                .filter_by(message_id=int(body['messageId']), user_id=TEMP_USER_ID).first()
+                .filter_by(message_id=int(body['messageId']), user_id=user_id).first()
             if message is None:
                 return False, \
                     (f'a message with messageId={body["messageId"]} could not be found',
@@ -158,7 +156,7 @@ def _handle_post_put(is_put=False):
         return 'MessageInABottle was successfully updated', HTTPStatus.OK
 
     message = Message(
-        user_id=TEMP_USER_ID,
+        user_id=auth_token['sub'],
         message=mib.message,
         send_time=mib.send_time,
         email_recipients=email_recipients
@@ -223,7 +221,7 @@ def delete():
 
     message_id = None if message_id_unparsed is None else int(
         message_id_unparsed)
-    user_id = TEMP_USER_ID
+    user_id = auth_token['sub']
 
     status_code = HTTPStatus.OK
 

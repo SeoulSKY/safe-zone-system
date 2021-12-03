@@ -7,7 +7,6 @@ const apiConfiguration = new Configuration({
 });
 
 export const updateToken = (accessToken?: string) => {
-  console.log("I am a token")
   apiConfiguration.baseOptions = {headers: {Authorization: `Bearer ${accessToken}`}};
   updateMibsApi();
 };
