@@ -5,9 +5,13 @@
 import {SettingsScreen} from '@/screens/SettingsScreen';
 import {MibScreen} from '@/screens/MibScreen';
 import {MibsCreateScreen} from '@/screens/MibsCreateScreen';
+import {MibItemViewScreen} from './MibsViewScreen';
+import {MibsEditScreen} from './MibsEditScreen';
 
 export {
   SettingsScreen,
   MibScreen,
   MibsCreateScreen,
+  MibsEditScreen,
+  MibItemViewScreen,
 };
