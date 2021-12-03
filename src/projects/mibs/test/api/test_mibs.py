@@ -3,21 +3,44 @@
 '''
 import unittest
 
-
+import time
+import jwt
 import re
 from urllib.parse import urlparse, parse_qs
 from dateutil.parser import parse as datetimeParse
 from datetime import datetime
-from api.mibs import mibs_blueprint, delete_mibs_for_user, TEMP_USER_ID
+from api.mibs import mibs_blueprint, delete_mibs_for_user
 from models import Message, EmailMessageRecipient, db
 from flask import Flask
 from http import HTTPStatus
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from auth_init import auth
+from unittest.mock import MagicMock
 
 test_email = 'test@email.com'
-test_user_id = 'temp-user-id'
+test_user_id = 'test-user'
 test_other_user = 'other_user'
 test_message_id = 1
 test_message_id2 = 2
+
+# Generate an RSA256 public/private key pair in order to self-sign tokens
+# for testing.
+private_key = rsa.generate_private_key(
+    public_exponent=65537,
+    key_size=2048,
+    backend=default_backend()
+)
+private_pem = private_key.private_bytes(
+    serialization.Encoding.PEM,
+    serialization.PrivateFormat.TraditionalOpenSSL,
+    serialization.NoEncryption()
+).decode()
+public_pem = private_key.public_key().public_bytes(
+    serialization.Encoding.PEM,
+    serialization.PublicFormat.PKCS1
+).decode()
 
 
 class TestMibsApi(unittest.TestCase):
@@ -28,6 +51,10 @@ class TestMibsApi(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)
         self.app.config['TESTING'] = True
+        self.app.config['AUTH_ISSUER'] = 'test_issuer'
+        self.app.config['AUTH_AUDIENCE'] = 'test'
+        self.app.config['AUTH_JWKS_URI'] = 'http://localhost/test/jwks'
+        auth.init_app(self.app)
         db.init_app(self.app)
         with self.app.app_context():
             db.create_all()
@@ -56,6 +83,14 @@ class TestMibsApi(unittest.TestCase):
             ],
             'sendTime': '2021-10-27T23:22:19.911Z'
         }
+        mock_signing_key = MagicMock()
+        mock_signing_key.key = public_pem
+
+        mock_jwk_client = MagicMock()
+        mock_jwk_client.get_signing_key_from_jwt = MagicMock(
+            return_value=mock_signing_key
+        )
+        auth.jwks_client = mock_jwk_client
 
 
         self.test_post_invalid_email_recipient_1 = {
@@ -133,6 +168,7 @@ class TestMibsApi(unittest.TestCase):
         response = self.client.post(
             '/mibs',
             content_type='application/x-www-form-urlencoded',
+            headers={'Authorization': 'Bearer ' + self.get_token()},
             json=self.test_post_message
         )
 
@@ -217,7 +253,8 @@ class TestMibsApi(unittest.TestCase):
         self.test_post_message.pop('message')
         response = self.client.post(
             '/mibs',
-            json=self.test_post_message
+            json=self.test_post_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -230,7 +267,8 @@ class TestMibsApi(unittest.TestCase):
         self.test_post_message.pop('recipients')
         response = self.client.post(
             '/mibs',
-            json=self.test_post_message
+            json=self.test_post_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -243,7 +281,8 @@ class TestMibsApi(unittest.TestCase):
         self.test_post_message['recipients'] = []
         response = self.client.post(
             '/mibs',
-            json=self.test_post_message
+            json=self.test_post_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -263,7 +302,8 @@ class TestMibsApi(unittest.TestCase):
         ]
         response = self.client.post(
             '/mibs',
-            json=self.test_post_message
+            json=self.test_post_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -279,7 +319,8 @@ class TestMibsApi(unittest.TestCase):
         self.test_post_message.pop('sendTime')
         response = self.client.post(
             '/mibs',
-            json=self.test_post_message
+            json=self.test_post_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -292,7 +333,8 @@ class TestMibsApi(unittest.TestCase):
         self.test_post_message['sendTime'] = '2021-10-27T23:22:19.911Za'
         response = self.client.post(
             '/mibs',
-            json=self.test_post_message
+            json=self.test_post_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -304,7 +346,8 @@ class TestMibsApi(unittest.TestCase):
         '''
         response = self.client.post(
             '/mibs',
-            json=self.test_post_message
+            json=self.test_post_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.CREATED)
@@ -318,7 +361,7 @@ class TestMibsApi(unittest.TestCase):
             message = Message.query.get(message_id)
 
             self.assertEqual(message.message_id, message_id)
-            self.assertEqual(message.user_id, TEMP_USER_ID)
+            self.assertEqual(message.user_id, test_user_id)
             self.assertEqual(message.message, self.test_post_message['message'])
             self.assertFalse(message.sent)
             self.assertIsNone(message.last_sent_time)
@@ -342,7 +385,8 @@ class TestMibsApi(unittest.TestCase):
         ]
         response = self.client.post(
             '/mibs',
-            json=self.test_post_message
+            json=self.test_post_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.CREATED)
@@ -367,7 +411,8 @@ class TestMibsApi(unittest.TestCase):
         response = self.client.put(
             '/mibs',
             content_type='application/x-www-form-urlencoded',
-            json=self.test_put_message
+            json=self.test_put_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -380,7 +425,8 @@ class TestMibsApi(unittest.TestCase):
         self.test_put_message.pop('messageId')
         response = self.client.put(
             '/mibs',
-            json=self.test_put_message
+            json=self.test_put_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -393,7 +439,8 @@ class TestMibsApi(unittest.TestCase):
         self.test_put_message.pop('message')
         response = self.client.put(
             '/mibs',
-            json=self.test_put_message
+            json=self.test_put_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -406,7 +453,8 @@ class TestMibsApi(unittest.TestCase):
         self.test_put_message.pop('recipients')
         response = self.client.put(
             '/mibs',
-            json=self.test_put_message
+            json=self.test_put_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -419,7 +467,8 @@ class TestMibsApi(unittest.TestCase):
         self.test_put_message['recipients'] = []
         response = self.client.put(
             '/mibs',
-            json=self.test_put_message
+            json=self.test_put_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -439,7 +488,8 @@ class TestMibsApi(unittest.TestCase):
         ]
         response = self.client.put(
             '/mibs',
-            json=self.test_put_message
+            json=self.test_put_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -455,7 +505,8 @@ class TestMibsApi(unittest.TestCase):
         self.test_put_message.pop('sendTime')
         response = self.client.put(
             '/mibs',
-            json=self.test_put_message
+            json=self.test_put_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -468,7 +519,8 @@ class TestMibsApi(unittest.TestCase):
         self.test_put_message['sendTime'] = '2021-10-27T23:22:19.911Za'
         response = self.client.put(
             '/mibs',
-            json=self.test_put_message
+            json=self.test_put_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -480,7 +532,8 @@ class TestMibsApi(unittest.TestCase):
         '''
         response = self.client.put(
             '/mibs',
-            json=self.test_put_message
+            json=self.test_put_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -503,7 +556,8 @@ class TestMibsApi(unittest.TestCase):
 
         response = self.client.put(
             '/mibs',
-            json=self.test_put_message
+            json=self.test_put_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -525,7 +579,8 @@ class TestMibsApi(unittest.TestCase):
 
         response = self.client.put(
             '/mibs',
-            json=self.test_put_message
+            json=self.test_put_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -540,7 +595,8 @@ class TestMibsApi(unittest.TestCase):
 
         response = self.client.put(
             '/mibs',
-            json=self.test_put_message
+            json=self.test_put_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
@@ -551,7 +607,7 @@ class TestMibsApi(unittest.TestCase):
             message = Message.query.get(self.test_put_message['messageId'])
 
             self.assertEqual(message.message_id, self.test_put_message['messageId'])
-            self.assertEqual(message.user_id, TEMP_USER_ID)
+            self.assertEqual(message.user_id, test_user_id)
             self.assertEqual(message.message, self.test_put_message['message'])
             self.assertFalse(message.sent)
             self.assertIsNone(message.last_sent_time)
@@ -578,7 +634,8 @@ class TestMibsApi(unittest.TestCase):
         ]
         response = self.client.put(
             '/mibs',
-            json=self.test_put_message
+            json=self.test_put_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
@@ -608,7 +665,8 @@ class TestMibsApi(unittest.TestCase):
 
         response = self.client.put(
             '/mibs',
-            json=self.test_put_message
+            json=self.test_put_message,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
@@ -702,7 +760,8 @@ class TestMibsApi(unittest.TestCase):
         Test DELETE /mibs to delete all mibs when user has no mibs
         '''
         with self.app.app_context():
-            response = self.client.delete('/mibs')
+            response = self.client.delete('/mibs',
+                headers={'Authorization': 'Bearer ' + self.get_token()})
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_code)
         self.assertEqual('Failed to delete all mibs: User does not have any mibs',
                          response.get_data(as_text=True))
@@ -714,7 +773,8 @@ class TestMibsApi(unittest.TestCase):
         '''
         self.create_message(user_id=test_other_user)
         with self.app.app_context():
-            response = self.client.delete('/mibs')
+            response = self.client.delete('/mibs',
+                headers={'Authorization': 'Bearer ' + self.get_token()})
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_code)
         self.assertEqual('Failed to delete all mibs: User does not have any mibs',
                          response.get_data(as_text=True))
@@ -727,7 +787,8 @@ class TestMibsApi(unittest.TestCase):
         '''
         self.create_message()
         with self.app.app_context():
-            response = self.client.delete('/mibs')
+            response = self.client.delete('/mibs',
+                headers={'Authorization': 'Bearer ' + self.get_token()})
         self.assertEqual(HTTPStatus.OK, response.status_code)
         self.assertEqual('Successfully deleted all mibs',
                          response.get_data(as_text=True))
@@ -740,7 +801,8 @@ class TestMibsApi(unittest.TestCase):
         self.create_message()
         self.create_message(message_id=test_message_id2)
         with self.app.app_context():
-            response = self.client.delete('/mibs')
+            response = self.client.delete('/mibs',
+                headers={'Authorization': 'Bearer ' + self.get_token()})
         self.assertEqual(HTTPStatus.OK, response.status_code)
         self.assertEqual('Successfully deleted all mibs',
                          response.get_data(as_text=True))
@@ -751,7 +813,8 @@ class TestMibsApi(unittest.TestCase):
         Test DELETE /mibs to delete a specific mib when user has no mibs
         '''
         with self.app.app_context():
-            response = self.client.delete(f'/mibs?messageId={test_message_id}')
+            response = self.client.delete(f'/mibs?messageId={test_message_id}',
+                headers={'Authorization': 'Bearer ' + self.get_token()})
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_code)
         self.assertEqual('Failed to delete mib with message id 1',
                          response.get_data(as_text=True))
@@ -764,7 +827,8 @@ class TestMibsApi(unittest.TestCase):
         '''
         self.create_message(user_id=test_other_user)
         with self.app.app_context():
-            response = self.client.delete(f'/mibs?messageId={test_message_id}')
+            response = self.client.delete(f'/mibs?messageId={test_message_id}',
+                headers={'Authorization': 'Bearer ' + self.get_token()})
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_code)
         self.assertEqual('Failed to delete mib with message id 1',
                          response.get_data(as_text=True))
@@ -777,7 +841,8 @@ class TestMibsApi(unittest.TestCase):
         '''
         self.create_message()
         with self.app.app_context():
-            response = self.client.delete(f'/mibs?messageId={test_message_id}')
+            response = self.client.delete(f'/mibs?messageId={test_message_id}',
+                headers={'Authorization': 'Bearer ' + self.get_token()})
         self.assertEqual(HTTPStatus.OK, response.status_code)
         self.assertEqual('Successfully deleted mib with message id 1',
                          response.get_data(as_text=True))
@@ -790,7 +855,8 @@ class TestMibsApi(unittest.TestCase):
         self.create_message()
         self.create_message(message_id=2)
         with self.app.app_context():
-            response = self.client.delete(f'/mibs?messageId={test_message_id}')
+            response = self.client.delete(f'/mibs?messageId={test_message_id}',
+                headers={'Authorization': 'Bearer ' + self.get_token()})
         self.assertEqual(HTTPStatus.OK, response.status_code)
         self.assertEqual('Successfully deleted mib with message id 1',
                          response.get_data(as_text=True))
@@ -813,7 +879,8 @@ class TestMibsApi(unittest.TestCase):
         '''
         Test GET /mibs using a given messageId on an empty database
         '''
-        response = self.client.get('/mibs?messageId=1')
+        response = self.client.get('/mibs?messageId=1',
+            headers={'Authorization': 'Bearer ' + self.get_token()})
         status = response.status_code
         data = response.get_json()
         self.assertEqual(data, [])
@@ -823,7 +890,8 @@ class TestMibsApi(unittest.TestCase):
         '''
         Test GET /mibs with no given messageId on an empty database
         '''
-        response = self.client.get('/mibs')
+        response = self.client.get('/mibs',
+            headers={'Authorization': 'Bearer ' + self.get_token()})
         status = response.status_code
         data = response.get_json()
         self.assertEqual(data, [])
@@ -834,7 +902,8 @@ class TestMibsApi(unittest.TestCase):
         Testing GET /mibs to try retrieving a mib with an non-existant messageId
         '''
         self.populate_messages()
-        response = self.client.get('/mibs?messageId=100')
+        response = self.client.get('/mibs?messageId=100',
+            headers={'Authorization': 'Bearer ' + self.get_token()})
         status = response.status_code
         data = response.get_json()
         self.assertEqual(data, [])
@@ -845,7 +914,8 @@ class TestMibsApi(unittest.TestCase):
         Test GET /mibs to try retrieving a mib with an existant messageId
         '''
         self.populate_messages()
-        response = self.client.get('/mibs?messageId=1')
+        response = self.client.get('/mibs?messageId=1',
+            headers={'Authorization': 'Bearer ' + self.get_token()})
         status = response.status_code
         data = response.get_json()
         self.assertNotEqual(data, [])
@@ -857,7 +927,8 @@ class TestMibsApi(unittest.TestCase):
         Test when no messageId is given
         '''
         self.populate_messages()
-        response = self.client.get('/mibs')
+        response = self.client.get('/mibs',
+            headers={'Authorization': 'Bearer ' + self.get_token()})
         status = response.status_code
         data = response.get_json()
         self.assertIsNotNone(data)
@@ -871,13 +942,6 @@ class TestMibsApi(unittest.TestCase):
         self.assertEqual(data[4]['message_id'], 9)
         self.assertEqual(status, HTTPStatus.OK)
 
-    # def test_get_not_authorized(self):
-    #     """
-    #     mibs-GET
-    #     Making a request from an unauthorized user
-    #     Expected outcome: no Mibs are returned with an UNAUTHORIZED response
-    #     """
-    #     pass
 
     def create_email_recipient(self,
                                message_send_request_id=1,
@@ -919,11 +983,11 @@ class TestMibsApi(unittest.TestCase):
 
     def populate_messages(self):
         filler_mibs = [
-            {'message_id': 1, 'user_id': TEMP_USER_ID,
+            {'message_id': 1, 'user_id': 'test-user',
                 'message': 'This was my first mibs message!',
                 'recipients': [{'email': 'test@mail'}],
                 'send_time': '2021-10-27T23:22:19.911Z'},
-            {'message_id': 2, 'user_id': TEMP_USER_ID,
+            {'message_id': 2, 'user_id': 'test-user',
                 'message': 'This was my second mibs message!',
                 'recipients': [{'email': 'test2@mail'}],
                 'send_time': '2021-10-27T23:22:19.911Z'},
@@ -935,11 +999,11 @@ class TestMibsApi(unittest.TestCase):
                 'message': 'There are more people making messages!',
                 'recipients': [{'email': 'test4@mail'}, {'email': 'aSecond@email'}],
                 'send_time': '2021-10-27T23:22:19.911Z'},
-            {'message_id': 5, 'user_id': TEMP_USER_ID,
+            {'message_id': 5, 'user_id': 'test-user',
                 'message': 'This is actually my third message (ignore the 5)!',
                 'recipients': [{'email': 'test5@mail'}],
                 'send_time': '2021-10-27T23:22:19.911Z'},
-            {'message_id': 6, 'user_id': TEMP_USER_ID,
+            {'message_id': 6, 'user_id': 'test-user',
                 'message': 'I have a lot of messages!',
                 'recipients': [{'email': 'test6@mail'}],
                 'send_time': '2021-10-27T23:22:19.911Z'},
@@ -951,7 +1015,7 @@ class TestMibsApi(unittest.TestCase):
                 'message': 'Me too!',
                 'recipients': [{'email': 'randomemail@mail'}],
                 'send_time': '2021-10-27T23:22:19.911Z'},
-            {'message_id': 9, 'user_id': TEMP_USER_ID,
+            {'message_id': 9, 'user_id': 'test-user',
                 'message': 'We are almost up to ten mibs in the db!',
                 'recipients': [{'email': 'test9@mail'}],
                 'send_time': '2021-10-27T23:22:19.911Z'}
@@ -966,6 +1030,31 @@ class TestMibsApi(unittest.TestCase):
                                        email_recipients=recipients,
                                        send_time=datetime.now()))
             db.session.commit()
+
+
+    def get_token(self, is_valid=True):
+        if is_valid:
+            headers = {'alg': 'RS256', 'typ': 'JWT', 'kid': '0'}
+            payload = {
+                'iss': 'test_issuer',
+                'exp': int(time.time()) + 30,
+                'aud': 'test',
+                'sub': 'test-user',
+            }
+            access_token = jwt.encode(payload, private_pem,
+                algorithm='RS256',
+                headers=headers
+            )
+        else:
+            access_token = ('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMj'
+                'M0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTU'
+                'xNjIzOTAyMn0.NHVaYe26MbtOYhSKkoKYdFVomg4i8ZJd8_-RU8VNbftc4TSMb4bX'
+                'P3l3YlNWACwyXPGffz5aXHc6lty1Y2t4SWRqGteragsVdZufDn5BlnJl9pdR_kdVF'
+                'Usra2rWKEofkZeIC4yWytE58sMIihvo9H1ScmmVwBcQP6XETqYd0aSHp1gOa9RdUP'
+                'DvoXQ5oqygTqVtxaDr6wUFKrKItgBMzWIdNZ6y7O9E0DhEPTbE9rfBo6KTFsHAZnM'
+                'g4k68CDp2woYIaXbmYTWcvbzIuHO7_37GT79XdIwkm95QJ7hYC9RiwrV7mesbY4PA'
+                'ahERJawntho0my942XheVLmGwLMBkQ')
+        return access_token
 
 
 if __name__ == '__main__':

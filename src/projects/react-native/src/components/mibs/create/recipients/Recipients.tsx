@@ -22,7 +22,7 @@ export function Recipients({
     setShowAddRecipientModal(false);
   };
 
-  const addRecipient = (dropdownValue, newRecipientValue) => {
+  const addRecipient = (dropdownValue: string, newRecipientValue: string) => {
     setRecipients(previousRecipients => {
       return [
         ...previousRecipients,

@@ -1,11 +1,25 @@
 import {safeZoneURI} from '@/common/constants';
 import {MibsApi, Configuration} from 'mibs';
 
+const apiConfiguration = new Configuration({
+  basePath: undefined,
+  accessToken: undefined,
+});
+
+export const updateToken = (accessToken?: string) => {
+  apiConfiguration.baseOptions = {headers:
+    {Authorization: `Bearer ${accessToken}`}};
+  updateMibsApi();
+};
+
 export const updateTarget = (newTargetServerAddress: string) => {
   global.targetServerAddress = newTargetServerAddress;
-  const apiConfiguration = new Configuration({
-    basePath: `http://${global.targetServerAddress}:80`,
-  });
+  apiConfiguration.basePath = `http://${global.targetServerAddress}:80`;
+  updateMibsApi();
+};
+
+
+const updateMibsApi = () => {
   global.mibsApi = new MibsApi(apiConfiguration);
 };
 

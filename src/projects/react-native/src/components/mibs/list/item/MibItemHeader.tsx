@@ -1,12 +1,11 @@
-import React, {ReactElement, useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { MessageInABottle, EmailRecipient, SmsRecipient, UserRecipient } from 'mibs'
-import { Duration } from '@/common/duration'
+import React, {ReactElement, useEffect, useState, useRef} from 'react';
+import {StyleSheet, Text, View} from 'react-native';
+import {MessageInABottle} from 'mibs'
+import {Duration} from '@/common/duration'
+import {recipientToString} from '@/common/util';
 
 /**
  * A Message in a Bottle as a list item.
- * 
- * @param props the message data, and optional active parameter
  * @returns A Message in a Bottle list item component.
  */
 export default function MibItemHeader({
@@ -16,39 +15,15 @@ export default function MibItemHeader({
   message: MessageInABottle,
   active: boolean
 }): ReactElement {
-  const expiryTime = new Date(message.send_time).getTime();
-  let newCountdown = new Duration(expiryTime - Date.now())
-  const [countdown, setCountdown] = useState(newCountdown.toString());
-
-  /**
-   * Converts a recipient object to a string that is readable by users.
-   * 
-   * @param recipient any recipient 
-   * @returns the recipient as a string if successful; `null` on failure
-   */
-  function recipientToString(
-    recipient: EmailRecipient | SmsRecipient | UserRecipient
-  ): string | null {
-    // Checks for the type of a recipient Union type
-    const isEmail = (recipient: any): recipient is EmailRecipient => !!recipient.email;
-    const isSMS = (recipient: any): recipient is SmsRecipient => !!recipient.phoneNumber;
-    const isUser = (recipient: any): recipient is UserRecipient => !!recipient.userId;
-
-    if (isEmail(recipient))
-      return recipient.email ? recipient.email : null;
-    if (isSMS(recipient))
-      return recipient.phoneNumber ? recipient.phoneNumber : null;
-    if (isUser(recipient))
-      return recipient.userId ? recipient.userId : null;
-    
-    return null;
-  }
+  const [countdown, setCountdown] = useState('00:00:00');
+  const countdownInterval: Timer = useRef();
 
   /**
    * Refreshes the value of the countdown based on the message send time.
    * If the send time is reached or exceeded, the countdown will remain at `00:00:00`.
    */
   function refreshCountdown(): void {
+    let expiryTime = new Date(message.sendTime).getTime()
     let remaining = expiryTime - Date.now();
     if (remaining > 0) {
       let newCountdown = new Duration(remaining);
@@ -57,11 +32,30 @@ export default function MibItemHeader({
     else setCountdown('00:00:00');
   }
 
+  /**
+   * Updates the countdown Interval when the send time of the message is
+   * changed.
+   * 
+   * Pre-conditions:
+   *  countdownInterval exists
+   * 
+   * Post-conditions:
+   *  updates the interval to use the new state
+   */
+  function updateCountdownInterval() {
+    if (active) {
+      clearInterval(countdownInterval.current);
+      countdownInterval.current = setInterval(refreshCountdown, 1000);
+    }
+  }
+  
+  useEffect(updateCountdownInterval, [message.sendTime])
+
   useEffect(() => {
-    if (active) {   // only use countdown timer for active mibs
-      const timerId = setInterval(refreshCountdown, 1000);
+    if (active) { 
+      refreshCountdown();
       return function cleanup() {
-        clearInterval(timerId);
+        clearInterval(countdownInterval.current);
       };
     }
   }, []);
