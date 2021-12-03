@@ -117,7 +117,7 @@ def _handle_post_put(is_put=False):
                 return True
 
         if len(body['recipients']) != 0:
-            if validate_email(body['recipients'][0]['email']) is False:
+            if not validate_email(body['recipients'][0]['email']):
                 return False, ('invalid email in request body', HTTPStatus.BAD_REQUEST), None
 
         email_recipients, sms_recipients, user_recipients, unknown_recipients = \
