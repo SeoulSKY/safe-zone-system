@@ -91,7 +91,7 @@ jobs:
       - name: run coverage
         run: |
           pip install coverage
-          export PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/${{env.project-path}}/${{ matrix.dir }}/src:${{ github.workspace }}/src:${{env.lib-path}}:${{env.lib-path}}/mibs/python/openapi
+          export PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/${{env.project-path}}/${{ matrix.dir }}/src:${{ github.workspace }}/src:${{env.auth-path}}:${{env.lib-path}}:${{env.lib-path}}/mibs/python/openapi
           coverage run -m unittest discover
         working-directory: ${{env.project-path}}/${{ matrix.dir }}
 
