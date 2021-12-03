@@ -1,29 +1,45 @@
 import React, {ReactElement, useState, useEffect, useContext} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {Recipients} from '@/components/mibs/create/recipients/Recipients';
-import {MessageModal} from '@/components/common';
-import {
-  ControlButtons,
-  MessageContainer,
-  SendDatePicker,
-} from '@/components/mibs/create';
+import {DualButton, MessageModal} from '@/components/common';
+import {MessageContainer, SendDatePicker} from '@/components/mibs/create';
 import {EmailRecipient, MessageInABottle} from 'mibs';
 import {MibsUpdateContext} from '@/common/mibsContext';
+import {isEmail, isSMS, isUser, Recipient} from '@/common/util';
+
 
 /**
- * The Screen for the Create Message In a Bottle feature.
- * @method
- * @return {View}
+ * The Edit Screen for an existing message in a bottle.
+ *
+ * Pre-conditions:
+ *  a message in a bottle must be passed through `route.params`
+ *
+ * @return {ReactElement}
  */
-export function MibsCreateScreen({
+export function MibsEditScreen({
+  route,
   navigation,
 }: {
+  route: Route,
   navigation: Navigation,
 }): ReactElement {
+  const oldMib = route.params.message;
+  const oldRecipients = oldMib.recipients.map((recipient: Recipient) => {
+    if (isEmail(recipient)) {
+      return {type: 'email', value: recipient.email};
+    }
+    if (isSMS(recipient)) {
+      return {type: 'sms', value: recipient.phoneNumber};
+    }
+    if (isUser(recipient)) {
+      return {type: 'user', value: recipient.userId};
+    }
+  });
+
   const [isNew, setIsNew] = useState(false);
-  const [recipients, setRecipients] = useState([]);
-  const [sendDate, setSendDate] = useState(new Date());
-  const [message, setMessage] = useState('');
+  const [recipients, setRecipients] = useState(oldRecipients);
+  const [sendDate, setSendDate] = useState(new Date(oldMib.sendTime));
+  const [message, setMessage] = useState(oldMib.message);
 
   const [showApiModal, setShowApiModal] = useState(false);
   const [receivedResponse, setReceivedResponse] = useState(false);
@@ -31,6 +47,7 @@ export function MibsCreateScreen({
   const [apiReturn, setApiReturn] = useState('');
 
   const {setMibsUpdate} = useContext(MibsUpdateContext);
+  const updateMibItemView = route.params.setMessage;
 
   useEffect(() => {
     navigation.addListener('focus', () => {
@@ -41,23 +58,34 @@ export function MibsCreateScreen({
     });
   }, []);
 
+  /**
+   * updates the message in a bottle by sending a PUT request the the MIBS API.
+   *
+   * Post-conditions:
+   *  updates the message on the mibs server
+   *  updates the item view for the message
+   *  signal that components using mibs require an update
+   *  set the response state
+   */
   const send = () => {
     const recipientsList = recipients.map((recipient) =>
       ({email: recipient.value} as EmailRecipient));
 
     const mib : MessageInABottle = {
+      messageId: oldMib.messageId,
       message: message,
       recipients: recipientsList,
       sendTime: sendDate.toUTCString(),
     };
     setApiReturn('Sending...');
     openApiModal();
-    global.mibsApi.createMessage(mib)
+    global.mibsApi.updateMessage(mib)
         .then((response) => {
           setApiReturn(response.data);
           setReceivedResponse(true);
           setRequestSuccessful(true);
           setMibsUpdate(true);
+          updateMibItemView(mib);
         })
         .catch((error) => {
           if (error.response) {
@@ -72,6 +100,13 @@ export function MibsCreateScreen({
         });
   };
 
+  /**
+   * Discards the current changes made to the message.
+   *
+   * Post-conditions:
+   *  resets the component state
+   *  navigates to the previous screen
+   */
   const discard = () => {
     setIsNew(true);
     setRecipients([]);
@@ -100,22 +135,22 @@ export function MibsCreateScreen({
         recipients={recipients}
         setRecipients={setRecipients}
       />
-
       <SendDatePicker
         sendDate={sendDate}
         setSendDate={setSendDate}
       />
-
       <MessageContainer
         message={message}
         setMessage={setMessage}
       />
-
-      <ControlButtons
-        discard={discard}
-        send={send}
+      <DualButton
+        button1Color='#F71D3E'
+        button1Text='Cancel'
+        button1Function={discard}
+        button2Color='dodgerblue'
+        button2Text='Save'
+        button2Function={send}
       />
-
       <MessageModal
         message={apiReturn}
         showModal={showApiModal}
@@ -128,6 +163,7 @@ export function MibsCreateScreen({
 
 const styles = StyleSheet.create({
   mainContainer: {
+    height: '100%',
     flex: 1,
     backgroundColor: '#fff',
   },

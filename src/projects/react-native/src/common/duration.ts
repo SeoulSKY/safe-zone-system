@@ -46,7 +46,7 @@ export class Duration {
    */
   toString(): string {
     if (this.days > 0) {
-      return `${this.days} ${this.days > 1 ? 'day' : 'days'}`;
+      return `${this.days} ${this.days == 1 ? 'day' : 'days'}`;
     } else {
       return (
         `${this.numToStringLeadingZero(this.hours)}:` +
