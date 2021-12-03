@@ -107,7 +107,8 @@ def _handle_post_put(is_put=False):
                 email is a string
 
             Postcondition:
-                returns a boolean True if the email is valid and a boolean False if the email is invalid
+                returns a boolean True if the email is valid
+                or a boolean False if the email is invalid
             '''
             regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
             if not re.fullmatch(regex, email):
