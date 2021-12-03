@@ -4,7 +4,6 @@ Stub for MIBS system
 from flask import Flask, request
 from os import environ as env
 from models import db, Message
-from auth import Authenticator, auth_token
 from src.api.mibs import mibs_blueprint
 from auth_init import auth
 
