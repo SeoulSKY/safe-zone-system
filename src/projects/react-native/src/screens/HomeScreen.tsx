@@ -9,16 +9,16 @@ import {ServerSelector} from '@/components/common';
  * @return {ReactElement}
  */
 export function HomeScreen(): ReactElement {
-  const [cmsText, setCmsText] = useState('No Response');
+  // const [cmsText, setCmsText] = useState('No Response');
   const [mibsText, setMibsText] = useState('No Response');
 
   const serverSelectorCallback = (serverTarget: string) => {
-    fetch(`http://${serverTarget}/cms/hello`, {method: 'GET'})
-        .then((response: Response) => response.text()
-            .then(setCmsText)
-            .catch((error: Error) => setCmsText(`Error: ${error.message}`))
-        )
-        .catch((error: Error) => setCmsText(`Error: ${error.message}`));
+  //   fetch(`http://${serverTarget}/cms/hello`, {method: 'GET'})
+  //       .then((response: Response) => response.text()
+  //           .then(setCmsText)
+  //           .catch((error: Error) => setCmsText(`Error: ${error.message}`))
+  //       )
+  //       .catch((error: Error) => setCmsText(`Error: ${error.message}`));
 
 
     fetch(`http://${serverTarget}/mibs/hello`, {method: 'GET'})
@@ -32,7 +32,7 @@ export function HomeScreen(): ReactElement {
   return (
     <View style={styles.container}>
       <Text>Home Screen</Text>
-      <Text>{`CMS Response: ${cmsText}`}</Text>
+      {/* <Text>{`CMS Response: ${cmsText}`}</Text> */}
       <Text>{`MIBS Response: ${mibsText}`}</Text>
       <Login/>
       <ServerSelector onUpdate={serverSelectorCallback}/>

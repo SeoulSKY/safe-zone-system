@@ -28,6 +28,8 @@ COPY --from=python-flask-modules /app/mibs/python/openapi /app/lib/mibs/python/o
 
 COPY lib/flask-auth/ /app/lib/auth
 
+COPY lib/logger/ /app/lib/logger
+
 COPY projects/mibs/requirements.txt ./
 RUN pip3 install -r requirements.txt
 

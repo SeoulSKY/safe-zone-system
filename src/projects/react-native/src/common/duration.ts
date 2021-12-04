@@ -1,3 +1,4 @@
+import {assert} from './assertions';
 
 
 /** Represents a duration of time in a human readable format. */
@@ -16,6 +17,7 @@ export class Duration {
    * @param {number} milliseconds the duration in milliseconds
    */
   constructor(milliseconds: number) {
+    assert(milliseconds >= 0, 'milliseconds is not > 0');
     this.days = Math.floor(milliseconds / (1000 * 60 * 60 * 24));
     this.hours = Math.floor((milliseconds / (1000 * 60 * 60)) % 24);
     this.minutes = Math.floor((milliseconds / 1000 / 60) % 60);
@@ -46,7 +48,7 @@ export class Duration {
    */
   toString(): string {
     if (this.days > 0) {
-      return `${this.days} ${this.days > 1 ? 'day' : 'days'}`;
+      return `${this.days} ${this.days == 1 ? 'day' : 'days'}`;
     } else {
       return (
         `${this.numToStringLeadingZero(this.hours)}:` +

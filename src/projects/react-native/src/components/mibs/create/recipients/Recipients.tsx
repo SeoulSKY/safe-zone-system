@@ -25,6 +25,7 @@ export function Recipients({
     setShowAddRecipientModal(false);
   };
 
+
   const addRecipient = (dropdownValue, newRecipientValue) => {
     setRecipients(recipients => {
       if(!recipients.map(r => r.value).includes(newRecipientValue)){
@@ -36,6 +37,7 @@ export function Recipients({
       }
       err = `${newRecipientValue} is already is a recipient`
       return recipients
+
     });
       return err
   };
