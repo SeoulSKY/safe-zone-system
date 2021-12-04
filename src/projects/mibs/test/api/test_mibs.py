@@ -156,6 +156,17 @@ class TestMibsApi(unittest.TestCase):
             'sendTime': '2021-10-27T23:22:19.911Z'
         }
 
+        self.test_put_invalid_message_id= {
+                    'messageId': 'helloUniverse',
+                    'message': 'new test message',
+                    'recipients': [
+                    {
+                        'email': 'test@.com'
+                    }
+                    ],
+                    'sendTime': '2021-10-27T23:22:19.911Z'
+                }
+
     def tearDown(self):
         with self.app.app_context():
             db.session.remove()
@@ -251,6 +262,19 @@ class TestMibsApi(unittest.TestCase):
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(response.data, b'invalid email in request body')
+
+    def test_put_invalid_message_id(self):
+        '''
+        Test PUT /mibs when request body is using an invalid message_id:
+        '''
+        response = self.client.put(
+            '/mibs',
+            json=self.test_put_invalid_message_id,
+            headers={'Authorization': 'Bearer ' + self.get_token()}
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, b'invalid messageId: messageId must be an integer')
 
     def test_post_missing_message(self):
         '''
@@ -927,6 +951,18 @@ class TestMibsApi(unittest.TestCase):
         self.assertNotEqual(data, [])
         self.assertEqual(data[0]['message_id'], 1)
         self.assertEqual(status, HTTPStatus.OK)
+
+    def test_get_request_with_invalid_id(self):
+        '''
+        Testing GET /mibs to try retrieving a mib with an invalid messageId
+        '''
+        self.populate_messages()
+        response = self.client.get('/mibs?messageId=helloWorld',
+         headers={'Authorization': 'Bearer ' + self.get_token()})
+        status = response.status_code
+        data = response.get_json()
+        self.assertEqual(data, [])
+        self.assertEqual(status, HTTPStatus.BAD_REQUEST)
 
     def test_get_no_given_message_id(self):
         '''
