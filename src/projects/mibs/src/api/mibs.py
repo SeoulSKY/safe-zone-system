@@ -18,6 +18,8 @@ from models import Message, EmailMessageRecipient, db
 from auth import auth_token
 from auth_init import auth
 
+import re
+
 mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
 
 LOGGER = get_logger(__name__)
@@ -83,6 +85,7 @@ def _handle_post_put(is_put=False):
     '''
 
     def validate() -> Tuple[bool, Tuple[str, HTTPStatus], Message]:
+
         if not request.is_json:
             return False, ('Request is not JSON', HTTPStatus.BAD_REQUEST), None
 
@@ -99,6 +102,28 @@ def _handle_post_put(is_put=False):
 
         if len(body['message']) == 0:
             return False, ('message cannot be empty', HTTPStatus.BAD_REQUEST), None
+
+        def validate_email(email):
+            '''
+            Checks if an email address is valid
+
+            Preconditions:
+                email is not None
+                email is a string
+
+            Postcondition:
+                returns a boolean True if the email is valid
+                or a boolean False if the email is invalid
+            '''
+            regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+            if not re.fullmatch(regex, email):
+                return False
+            else:
+                return True
+
+        if len(body['recipients']) != 0:
+            if not validate_email(body['recipients'][0]['email']):
+                return False, ('invalid email in request body', HTTPStatus.BAD_REQUEST), None
 
         email_recipients, sms_recipients, user_recipients, unknown_recipients = \
             _parse_recipients(body['recipients'])
