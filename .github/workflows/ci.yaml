@@ -2,7 +2,7 @@ name: ci workflow
 on:
   workflow_dispatch: 
   push:
-    branches: [ master, ID*, ci-*]
+    branches: [ master, ID*, ci-*, 240-ios-ipa-publish]
   pull_request:
     branches: [ master, ID* ]
 
@@ -437,7 +437,10 @@ jobs:
           npm run load-dist
         working-directory: ${{env.project-path}}/${{env.dir}}
 
-      - name: host bundles and setup environment
+      - name: serve bundles
+        run: npm run serve-dist
+
+      - name: setup android build environment
         run:  npm run setup-android-build-env
         working-directory: ${{env.project-path}}/${{env.dir}}
 
@@ -467,9 +470,105 @@ jobs:
           name: ${{env.artifact-name}}
           path: ${{env.ci-scripts}}/ci_status.json
 
+  publish-ios-ipa:
+    if: github.event_name == 'push'
+    needs: [date-job, smoke-test]
+    runs-on: ubuntu-latest
+    env:
+      project-path: 'src/projects'
+      dir: "react-native"
+      node-version: 16
+      home-dir: "/home/runner/"
+      ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts
+      api-dir: ${{ github.workspace }}/src/tools/api/
+      mibs-gen-dir: ${{ github.workspace }}/src/lib/mibs/ts/
+      artifact-name: artifact-${{github.job}}
+      SAFEZONE_ENVIRONMENT: production
+      SAFEZONE_HOST: safezone-test.usask.ca
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+
+      - name: java 8 setup
+        uses: actions/setup-java@v2
+        with:
+          distribution: adopt
+          java-version: 8
+
+      - name: react-native setup
+        uses: actions/setup-node@v1
+        with: 
+          node-version: ${{env.node-version}}
+
+      - name: get branch name
+        id: branch
+        run: |
+         if [[ ${{ github.event_name }} == 'push' ]]; then
+           echo ::set-output name=branch::${GITHUB_REF#refs/*/}
+         fi
+
+      - name: install dependencies
+        run: |
+          npm install -g turtle-cli
+          yarn add expo-cli
+          yarn add expo
+          yarn install
+        working-directory: ${{env.project-path}}/${{env.dir}}
+
+      - name: load codegen dependency
+        run:  bash ./gen_api.sh
+        working-directory: ${{env.api-dir}}
+
+      - name: install mibs dependencies
+        run:  yarn install 
+        working-directory: ${{env.mibs-gen-dir}}
+
+      - name: load bundles
+        run: |
+          echo 'export PATH=$PATH:~/.npm-global/bin' >> ~/.bash_profile
+          source ~/.bash_profile
+          npm run load-dist
+        working-directory: ${{env.project-path}}/${{env.dir}}
+
+      - name: serve bundles
+        run: npm run serve-dist
+
+      - name: setup ios build environment
+        run:  npm run setup-ios-build-env
+        working-directory: ${{env.project-path}}/${{env.dir}}
+
+      - name: build ios ipa
+        run: npm run dev-build-ios
+        working-directory: ${{env.project-path}}/${{env.dir}}
+
+      - name: upload ipa
+        uses: actions/upload-artifact@v2
+        with: 
+          name: "ios-ipa.${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}}"
+          path: ${{env.home-dir}}/expo-apps/*.apk
+
+      - name: clear expo-apps directory
+        run: rm -rf ${{env.home-dir}}/expo-apps/*
+        working-directory: ${{env.project-path}}/${{env.dir}}
+
+      - name: write job status to ci_status.json
+        if: always()
+        run: bash post_job_status.sh ${{github.job}} ${{job.status}} 
+        working-directory: ${{env.ci-scripts}}
+
+      - name: upload job status artifact
+        if: always()        
+        uses: actions/upload-artifact@v2
+        with: 
+          name: ${{env.artifact-name}}
+          path: ${{env.ci-scripts}}/ci_status.json
+
   publish-status-report-job:
     if: github.event_name == 'push'
-    needs: [date-job, python-job, react-native-job, web-job, docker-job, smoke-test, publish-android-apk]
+    needs: [date-job, python-job, react-native-job, web-job, docker-job, smoke-test, publish-android-apk, publish-ios-ipa]
     runs-on: ubuntu-latest
     env:
       project-path: 'src/projects'

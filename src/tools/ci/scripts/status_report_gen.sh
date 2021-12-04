@@ -12,6 +12,7 @@ react_native_job="react-native-job"
 web_job="web-job"
 smoke_test_job="smoke-test"
 android_apk_publish_job="publish-android-apk"
+ios_ipa_publish_job="publish-ios-ipa"
 
 #VARIABLES
 success="success"
@@ -42,6 +43,7 @@ react_native_dir="artifact-$react_native_job"
 web_dir="artifact-$web_job"
 smoke_test_dir="artifact-$smoke_test_job"
 android_apk_publish_dir="artifact-$android_apk_publish_job"
+ios_ipa_publish_dir="artifact-$ios_ipa_publish_job"
 
 get_status(){
     if [ -d $1 ];
@@ -125,6 +127,10 @@ report(){
     # populate android apk build job status
     stat="$(get_status $android_apk_publish_dir $android_apk_publish_job)"
     populate_description "android-apk-publish[$stat] \n"
+
+    # populate ios ipa build job status
+    stat="$(get_status $ios_ipa_publish_dir $ios_ipa_publish_job)"
+    populate_description "ios-ipa-publish[$stat] \n"
 
     description+="$status"
     echo $description
