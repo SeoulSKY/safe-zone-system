@@ -4,7 +4,6 @@ import {Platform} from 'react-native';
 export const production = Constants.manifest?.extra?.production || false;
 export const configuredHost = Constants.manifest?.extra?.host;
 
-console.log({constants: Constants.manifest});
 export const safeZoneURI = production ?
   configuredHost :
   configuredHost || (Platform.select({web: true, default: false}) ?

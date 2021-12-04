@@ -6,6 +6,7 @@ import {
 } from 'expo-auth-session';
 import {Platform} from 'react-native';
 import {safeZoneURI} from '@/common/constants';
+import {assert} from '@/common/assertions';
 
 /**
  *  Interface of the object that returned by the `useLogin()` hook.
@@ -73,6 +74,8 @@ export const useLogin = (): Auth => {
   const getTokens = () => {
     if (discovery && response?.type === 'success') {
       const {code, state} = response.params;
+      assert(!!code, 'response does not contain a code');
+      assert(!!state, 'response does not contain a state');
       exchangeCodeAsync({
         clientId,
         scopes,
@@ -111,11 +114,15 @@ export const useLogin = (): Auth => {
 
   useEffect(refreshTokens, [tokens, setTokens, discovery]);
 
+  const loginReady = !!request;
+  const loggedIn = !!tokens;
   return {
     login: () => {
+      assert(loginReady, 'not logged in');
       promptAsync();
     },
     logout: () => {
+      assert(loggedIn, 'cannot logout when not logged in');
       if (tokens && discovery) {
         revokeAsync({
           clientId,
@@ -135,8 +142,8 @@ export const useLogin = (): Auth => {
         }
       }
     },
-    loginReady: !!request,
-    loggedIn: !!tokens,
+    loginReady,
+    loggedIn,
     tokens,
   };
 };

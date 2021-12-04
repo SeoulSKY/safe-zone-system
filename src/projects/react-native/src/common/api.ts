@@ -1,4 +1,5 @@
 import {safeZoneURI} from '@/common/constants';
+import {assert} from '@/common/assertions';
 import {MibsApi, Configuration} from 'mibs';
 
 const apiConfiguration = new Configuration({
@@ -13,6 +14,9 @@ export const updateToken = (accessToken?: string) => {
 };
 
 export const updateTarget = (newTargetServerAddress: string) => {
+  assert(!!newTargetServerAddress,
+      'newTargetServerAddress is null or undefined'
+  );
   global.targetServerAddress = newTargetServerAddress;
   apiConfiguration.basePath = `http://${global.targetServerAddress}:80`;
   updateMibsApi();

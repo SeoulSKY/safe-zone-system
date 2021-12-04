@@ -1,5 +1,6 @@
 import React, {ReactElement} from 'react';
-import {Button, StyleSheet, View} from 'react-native'
+import {Button, StyleSheet, View} from 'react-native';
+import {assert} from '@/common/assertions';
 
 export function DualButton({
   button1Color,
@@ -16,6 +17,8 @@ export function DualButton({
   button2Text: string,
   button2Function: () => void,
 }): ReactElement {
+  assert(!!button1Text, 'Empty button1Text')
+  assert(!!button2Text, 'Empty button2Text')
   return (
     <View style={styles.container}>
       <View style={styles.buttonContainer}>

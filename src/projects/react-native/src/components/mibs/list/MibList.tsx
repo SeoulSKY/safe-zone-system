@@ -3,7 +3,7 @@ import {FlatList, StyleSheet, View, Button, Text} from 'react-native';
 import {MessageInABottle} from 'mibs'
 import {MibItem} from './item/MibItem';
 import {MessageModal} from '@/components/common';
-import { MibsUpdateContext } from '@/common/mibsContext';
+import {MibsUpdateContext} from '@/common/mibsContext';
 
 /**
  * A message in a bottle list containing active messages.
@@ -31,10 +31,10 @@ export function ActiveMibList({navigation}: {navigation: Navigation}): ReactElem
 
   /**
    * Gets the messages from the MIBS API.
-   * 
+   *
    * Pre-conditions:
    *  global.mibsApi exists
-   * 
+   *
    * Post-conditions:
    *  sets `mibsList` to be the response of the GET request.
    */
@@ -121,7 +121,7 @@ export function TemplateMibList({navigation}: {navigation: Navigation}): ReactEl
  * The `active` parameter specified in `props` determines which style of item to use 
  * (active or template). If active is specified, and it is true, the items will appear as
  * active MIBs; otherwise, they will appear as templates MIBs.
- * 
+ *
  * @returns A Message in a Bottle list component.
  */
 export function MibList({
@@ -141,7 +141,7 @@ export function MibList({
   closeModal: () => void,
   active: boolean,
   navigation: Navigation,
-  onRefresh: () => void, 
+  onRefresh: () => void,
 }): ReactElement {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -154,7 +154,7 @@ export function MibList({
 
   return (
     <View style={styles.container}>
-      <FlatList 
+      <FlatList
         style={{marginTop:16}}
         data={items.map(mib => {return {key: `${mib.messageId}`, message: mib}})}
         onRefresh={refresh}

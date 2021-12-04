@@ -1,9 +1,8 @@
 import 'react-native-url-polyfill/auto';
-
-import React, {useEffect}, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StatusBar} from 'expo-status-bar';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
-import {NavigationContainer} from '@react-navigation/native'
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {NavigationContainer} from '@react-navigation/native';
 import {Ionicons} from '@expo/vector-icons';
 import {SettingsScreen, MibScreen, MibsCreateScreen,
   MibItemViewScreen, MibsEditScreen} from '@/screens/index'
@@ -13,9 +12,13 @@ import {AuthContext} from '@/common/authContext';
 import {updateToken} from '@/common/api';
 import {createStackNavigator} from '@react-navigation/stack';
 import {MibsUpdateContext} from '@/common/mibsContext';
+import { production } from '@/common/constants';
+import { enableAssertions } from '@/common/assertions';
 
-const Tab = createBottomTabNavigator()
-const Stack = createStackNavigator()
+enableAssertions(!production);
+
+const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
 /**
  * The Base Application.
