@@ -2,7 +2,7 @@ import React, {ReactElement, useState} from 'react';
 import {Button, FlatList, StyleSheet, Text, View} from 'react-native';
 import {EmailRecipient, SmsRecipient, UserRecipient} from 'mibs';
 import {AddRecipientModal} from '@/components/mibs/create/recipients/AddRecipientModal';
-import { error } from 'console';
+
 
 
 export function Recipients({
