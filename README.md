@@ -17,8 +17,12 @@
 2. Nagivate to the `<project root>/docker/dev` directory of the project (where the docker-compose.yml file is located).
 3. Execute the following command to build and start all docker containers.
     ```
-    docker-compose --env-file dev.env up --build
+    AUTH_ISSUER='address' docker-compose --env-file dev.env up --build
     ```
+    * 'address' is where  expo is running on your local machine. You can find this when you start expo. An example may be:
+       ```
+       AUTH_ISSUER='10.0.0.243' docker-compose --env-file dev.env up --build
+       ```
 
 ### Starting Expo
 1. Ensure NodeJS 16 and Android Studio is installed. 
