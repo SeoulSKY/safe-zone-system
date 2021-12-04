@@ -11,7 +11,7 @@ export function AddRecipientModal({
 }: {
   showModal: boolean,
   closeModal: () => void,
-  addRecipient: () => String,
+  addRecipient: (type: string, value: string) => String,
   err: String
 }): ReactElement {
 
