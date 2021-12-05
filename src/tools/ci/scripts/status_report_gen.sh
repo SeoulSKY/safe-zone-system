@@ -54,7 +54,7 @@ get_status(){
         fi
 
         # if [ "$value" = "$failure" ];then
-        if [ $value = $failure ];then
+        if [[ "$value" == "$failure" ]];then
             status=$failure
         fi
         
