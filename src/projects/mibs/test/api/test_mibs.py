@@ -1002,8 +1002,8 @@ class TestMibsApi(unittest.TestCase):
         response = self.client.get('/mibs?messageId=helloWorld',
          headers={'Authorization': 'Bearer ' + self.get_token()})
         status = response.status_code
-        data = response.get_json()
-        self.assertEqual(data, [])
+        data = response.data
+        self.assertEqual(data, b'invalid messageId: messageId must be an integer')
         self.assertEqual(status, HTTPStatus.BAD_REQUEST)
 
     def test_get_no_given_message_id(self):

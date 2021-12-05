@@ -52,8 +52,7 @@ def get():
         return get_all_messages(user_id), HTTPStatus.OK
 
     if not given_id.isnumeric():
-        status = HTTPStatus.BAD_REQUEST
-        return jsonify([]), status
+        return 'invalid messageId: messageId must be an integer', HTTPStatus.BAD_REQUEST
 
     # valid message_id is given
     mib = Message.query.filter_by(
