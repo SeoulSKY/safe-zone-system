@@ -378,12 +378,12 @@ jobs:
         working-directory: ${{env.docker-dev}}
 
       - name: write job status to ci_status.json
-        if: github.event_name == 'push'
+        if: always()
         run: bash ./post_job_status.sh ${{github.job}} ${{job.status}} 
         working-directory: ${{env.ci-scripts}}
 
       - name: upload job status artifact
-        if: github.event_name == 'push'
+        if: always()
         uses: actions/upload-artifact@v2
         with: 
           name: ${{env.artifact-name}}
