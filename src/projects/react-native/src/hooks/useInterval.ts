@@ -1,3 +1,4 @@
+import {assert} from '@/common/assertions';
 import {useEffect, useRef} from 'react';
 
 /**
@@ -6,6 +7,7 @@ import {useEffect, useRef} from 'react';
  * @param {number} interval the interval to run the function at.
  */
 export function useInterval(callback: () => void, interval: number) {
+  assert(interval > 0, 'interval not > 0');
   const savedCallback = useRef();
   useEffect(() => {
     savedCallback.current = callback;

@@ -37,7 +37,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     textAlignVertical: 'top',
     backgroundColor: '#D3D3D3',
-    borderWidth: 1,
     borderRadius: 5,
     height: '95%',
   },

@@ -10,7 +10,7 @@ export function AddRecipientModal({
 }: {
   showModal: boolean,
   closeModal: () => void,
-  addRecipient: () => void,
+  addRecipient: (type: string, value: string) => void,
 }): ReactElement {
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
