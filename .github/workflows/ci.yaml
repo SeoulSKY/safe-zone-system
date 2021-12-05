@@ -273,10 +273,10 @@ jobs:
            echo ::set-output name=cms-mibs-web::${{env.true}}
            echo ::set-output name=reverse-proxy-keycloak-postgres-dev-smtp-dev::${{env.false}}
          fi
-         if [[ ${{matrix.dir}} == 'reverse-proxy' || ${{matrix.dir}} == 'keycloak' || ${{matrix.dir}} == 'postgres-dev' || ${{matrix.dir}} == 'smtp-dev' ]] ; then
+         if [[ ${{matrix.dir}} == 'reverse-proxy' || ${{matrix.dir}} == 'postgres-dev' || ${{matrix.dir}} == 'smtp-dev' ]] ; then
            echo ::set-output name=directory::${{github.workspace}}
            echo ::set-output name=cms-mibs-web::${{env.false}}
-           echo ::set-output name=reverse-proxy-keycloak-postgres-dev-smtp-dev::${{env.true}}
+           echo ::set-output name=reverse-proxy-postgres-dev-smtp-dev::${{env.true}}
          fi
          exit 0
         shell: bash
@@ -291,10 +291,18 @@ jobs:
            docker push ${{env.registry-owner-dir}}:${{env.master}}
            docker push ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}}
          fi
-         if [[ (${{steps.directory-vars.outputs.reverse-proxy-keycloak-postgres-dev-smtp-dev}} == ${{env.true}}) && (${{steps.branch.outputs.branch}} == ${{env.master}}) ]]; then
+         if [[ (${{steps.directory-vars.outputs.reverse-proxy-postgres-dev-smtp-dev}} == ${{env.true}}) && (${{steps.branch.outputs.branch}} == ${{env.master}}) ]]; then
            docker build --tag ${{env.registry-owner-dir}}:${{env.latest}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
            docker build --tag ${{env.registry-owner-dir}}:${{env.master}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
            docker build --tag ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
+           docker push ${{env.registry-owner-dir}}:${{env.latest}}
+           docker push ${{env.registry-owner-dir}}:${{env.master}}
+           docker push ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}}
+         fi
+         if [[ ${{matrix.dir}} == 'keycloak' && (${{steps.branch.outputs.branch}} == ${{env.master}}) ]]; then
+           docker build --tag ${{env.registry-owner-dir}}:${{env.latest}} --file ${{env.src-projects-dir}}/Dockerfile-dev ./${{env.src-projects-dir}}
+           docker build --tag ${{env.registry-owner-dir}}:${{env.master}} --file ${{env.src-projects-dir}}/Dockerfile-dev ./${{env.src-projects-dir}}
+           docker build --tag ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}} --file ${{env.src-projects-dir}}/Dockerfile-dev ./${{env.src-projects-dir}}
            docker push ${{env.registry-owner-dir}}:${{env.latest}}
            docker push ${{env.registry-owner-dir}}:${{env.master}}
            docker push ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}}
@@ -311,11 +319,19 @@ jobs:
            docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}
            docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}}
          fi
-         if [[ (${{steps.directory-vars.outputs.reverse-proxy-keycloak-postgres-dev-smtp-dev}} == ${{env.true}}) && ${{steps.branch.outputs.branch}} =~ [I][D][0-9]* ]]; then
+         if [[ (${{steps.directory-vars.outputs.reverse-proxy-postgres-dev-smtp-dev}} == ${{env.true}}) && ${{steps.branch.outputs.branch}} =~ [I][D][0-9]* ]]; then
            docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
            docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
            docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}
            docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}}
+         fi
+         if [[ ${{matrix.dir}} == 'keycloak' && ${{steps.branch.outputs.branch}} =~ [I][D][0-9]* ]]; then
+           docker build --tag ${{env.registry-owner-dir}}:${{env.latest}} --file ${{env.src-projects-dir}}/Dockerfile-dev ./${{env.src-projects-dir}}
+           docker build --tag ${{env.registry-owner-dir}}:${{env.master}} --file ${{env.src-projects-dir}}/Dockerfile-dev ./${{env.src-projects-dir}}
+           docker build --tag ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}} --file ${{env.src-projects-dir}}/Dockerfile-dev ./${{env.src-projects-dir}}
+           docker push ${{env.registry-owner-dir}}:${{env.latest}}
+           docker push ${{env.registry-owner-dir}}:${{env.master}}
+           docker push ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}}
          fi
          exit 0
         shell: bash
