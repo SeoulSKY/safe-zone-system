@@ -49,7 +49,10 @@ def get():
     if given_id is None:
         return get_all_messages(user_id), HTTPStatus.OK
 
-    # message_id is given
+    if not given_id.isnumeric():
+        return 'invalid messageId: messageId must be an integer', HTTPStatus.BAD_REQUEST
+
+    # valid message_id is given
     mib = Message.query.filter_by(
         user_id=user_id, message_id=given_id).all()
 
@@ -58,6 +61,7 @@ def get():
         status = HTTPStatus.NOT_FOUND
     else:
         status = HTTPStatus.OK
+
     return jsonify(serialize(mib)), status
 
 
@@ -91,6 +95,10 @@ def _handle_post_put(is_put=False):
 
         if is_put and not 'messageId' in body:
             return False, ('"messageId" missing from request body', HTTPStatus.BAD_REQUEST), None
+
+        if is_put and not isinstance(body['messageId'], int):
+            return False, ('invalid messageId: messageId must be an integer', \
+                   HTTPStatus.BAD_REQUEST), None
 
         if not 'message' in body:
             return False, ('"message" missing from request body', HTTPStatus.BAD_REQUEST), None
@@ -245,6 +253,12 @@ def delete():
     '''
     assert request is not None
     message_id_unparsed = request.args.get('messageId', None)
+
+    if message_id_unparsed is not None:
+        if not message_id_unparsed.isnumeric() :
+            message = 'Invalid messageId'
+            status_code = HTTPStatus.BAD_REQUEST
+            return message,status_code
 
     message_id = None if message_id_unparsed is None else int(
         message_id_unparsed)
