@@ -20,7 +20,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "usask.cmpt371.team1project",
+      "bundleIdentifier": "usask.cs.cmpt371.team1project",
       "buildNumber": "1.0.0"
     },
     "android": {

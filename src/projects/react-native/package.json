@@ -14,7 +14,7 @@
     "setup-android-build-env": "turtle setup:android",
     "setup-ios-build-env":"turtle setup:ios",
     "dev-build-android": "EXPO_ANDROID_KEYSTORE_PASSWORD=DEV-safezone371-keystore EXPO_ANDROID_KEY_PASSWORD=DEV-safezone371-keystore turtle build:android --type apk --keystore-path ./keystore-dev.jks --keystore-alias 'keyalias' --allow-non-https-public-url --public-url http://127.0.0.1:8000/android-index.json",
-    "dev-build-ios": "EXPO_IOS_DIST_P12_PASSWORD=\"CMPT371TEAM1IOSCert_dev\" turtle build:ios --team-id CMPT371TEAM1 --dist-p12-path ./Certificates.p12 --allow-non-https-public-url --public-url http://127.0.0.1:8000/ios-index.json",
+    "dev-build-ios": "EXPO_IOS_DIST_P12_PASSWORD=\"CMPT371TEAM1IOSCert_dev\" turtle build:ios --team-id 7VPB88R78Y --dist-p12-path ./Certificates.p12 --provisioning-profile-path ./UofS_General_Provisioning_Profile.mobileprovisi --allow-non-https-public-url --public-url http://127.0.0.1:8000/ios-index.json",
     "post-apkbuild": "pkill -f http-server"
   },
   "dependencies": {

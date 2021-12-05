@@ -1,3 +1,5 @@
 dist filter=lfs diff=lfs merge=lfs -text
 keystore.jks filter=lfs diff=lfs merge=lfs -text
 Certificates.p12 filter=lfs diff=lfs merge=lfs -text
+UofS_General_Provisioning_Profile.mobileprovisi filter=lfs diff=lfs merge=lfs -text
+keystore-dev.jks filter=lfs diff=lfs merge=lfs -text

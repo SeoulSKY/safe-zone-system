@@ -439,6 +439,7 @@ jobs:
 
       - name: serve bundles
         run: npm run serve-dist
+        working-directory: ${{env.project-path}}/${{env.dir}}
 
       - name: setup android build environment
         run:  npm run setup-android-build-env
@@ -535,6 +536,7 @@ jobs:
 
       - name: serve bundles
         run: npm run serve-dist
+        working-directory: ${{env.project-path}}/${{env.dir}}
 
       - name: setup ios build environment
         run:  npm run setup-ios-build-env
