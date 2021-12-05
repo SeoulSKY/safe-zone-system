@@ -57,6 +57,7 @@ services:
   keycloak:
     build:
       context: ../../src/projects/keycloak
+      dockerfile: Dockerfile-${KEYCLOAK_TARGET}
     environment:
       DB_VENDOR: ${DB_VENDOR}
       DB_ADDR: ${DB_ADDR}
