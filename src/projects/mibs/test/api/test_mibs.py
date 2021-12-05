@@ -156,7 +156,7 @@ class TestMibsApi(unittest.TestCase):
             'sendTime': '2021-10-27T23:22:19.911Z'
         }
 
-        self.test_put_invalid_messageId= {
+        self.test_put_invalid_message_id_recipient= {
             'messageId': 'helloUniverse',
             'message': 'new test message',
             'recipients': [
@@ -269,7 +269,7 @@ class TestMibsApi(unittest.TestCase):
         '''
         response = self.client.put(
             '/mibs',
-            json=self.test_put_invalid_messageId,
+            json= self.test_put_invalid_message_id_recipient,
             headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
