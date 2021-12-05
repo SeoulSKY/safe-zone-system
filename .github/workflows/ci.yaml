@@ -345,7 +345,7 @@ jobs:
       docker-dir: ${{ github.workspace }}/docker/test
       test-dir: ${{ github.workspace }}/test/
     steps:
-      - name: checkout repo
+      - nname: checkout repo
         uses: actions/checkout@v2
         with:
           lfs: true
@@ -466,46 +466,47 @@ jobs:
 #           name: ${{env.artifact-name}}
 #           path: ${{env.ci-scripts}}/ci_status.json
 
-#   publish-status-report-job:
-#     if: github.event_name == 'push'
-#     needs: [date-job, python-job, react-native-job, web-job, docker-job, smoke-test, publish-android-apk]
-#     runs-on: ubuntu-latest
-#     env:
-#       project-path: 'src/projects'
-#       ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts      
-#     steps:
-#       - name: checkout repo
-#         uses: actions/checkout@v2
+  publish-status-report-job:
+    if: always()
+    if: github.event_name == 'push'
+    needs: [date-job, python-job, react-native-job, web-job, docker-job, smoke-test, publish-android-apk]
+    runs-on: ubuntu-latest
+    env:
+      project-path: 'src/projects'
+      ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts      
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
 
-#       - name: download all artifacts
-#         uses: actions/download-artifact@v2
-#         with:
-#           path: ${{env.ci-scripts}}
+      - name: download all artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: ${{env.ci-scripts}}
 
-#       - name: get status report #echo report and set output
-#         if: always()
-#         id: report_gen
-#         run: | 
-#           echo -e $(bash ./status_report_gen.sh) > status.txt
-#           echo "::set-output name=report::$(cat status.txt | head -n -1 | tr -d '"\r\n')"
-#           echo "::set-output name=status::$(cat status.txt | tail -n 1)"
-#         working-directory: ${{env.ci-scripts}}
+      - name: get status report #echo report and set output
+        if: always()
+        id: report_gen
+        run: | 
+          echo -e $(bash ./status_report_gen.sh) > status.txt
+          echo "::set-output name=report::$(cat status.txt | head -n -1 | tr -d '"\r\n')"
+          echo "::set-output name=status::$(cat status.txt | tail -n 1)"
+        working-directory: ${{env.ci-scripts}}
         
-#       - name: print outputs #print outputs to log
-#         if: always()
-#         run: |
-#           echo ${{steps.report_gen.outputs.status}}
-#           echo ${{steps.report_gen.outputs.report}}
+      - name: print outputs #print outputs to log
+        if: always()
+        run: |
+          echo ${{steps.report_gen.outputs.status}}
+          echo ${{steps.report_gen.outputs.report}}
 
-#       - name: post job status report to discord #publish to discord in md format
-#         if: always()
-#         uses: sarisia/actions-status-discord@v1.8.6
-#         with: 
-#           webhook: ${{ secrets.DISCORD_WEBHOOK }}
-#           title: CI STATUS REPORT
-#           status: ${{steps.report_gen.outputs.status}}
-#           description: |
-#             ```
-#             ${{steps.report_gen.outputs.report}}
-#             ```
-#             > Click [here](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to view logs.
+      - name: post job status report to discord #publish to discord in md format
+        if: always()
+        uses: sarisia/actions-status-discord@v1.8.6
+        with: 
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          title: CI STATUS REPORT
+          status: ${{steps.report_gen.outputs.status}}
+          description: |
+            ```
+            ${{steps.report_gen.outputs.report}}
+            ```
+            > Click [here](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}) to view logs.
