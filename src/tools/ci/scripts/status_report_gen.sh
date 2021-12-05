@@ -17,8 +17,6 @@ android_apk_publish_job="publish-android-apk"
 success="success"
 failure="failure"
 cancelled="cancelled"
-value=""
-
 description=""
 
 ci_status_json=ci_status.json
@@ -52,6 +50,8 @@ get_status(){
         else
             value=$(jq ".\"$2\"" $1/$ci_status_json)
         fi
+
+        echo "$value"
     else
         echo $cancelled
     fi
