@@ -5,6 +5,7 @@ from flask import Flask, request
 from os import environ as env
 from models import db, Message
 from src.api.mibs import mibs_blueprint
+from services.message_pool_service import MessagePoolingService
 from auth_init import auth
 
 db_addr = env.get('DB_ADDR')
@@ -29,6 +30,7 @@ auth.init_app(app)
 db.init_app(app)
 with app.app_context():
     db.create_all()
+    MessagePoolingService().start()
 
 @app.route('/mibs/hello',methods=['POST','GET'])
 @auth.require_token

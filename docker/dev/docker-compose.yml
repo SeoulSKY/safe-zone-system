@@ -52,6 +52,8 @@ services:
       POSTGRES_MIBS_DB: ${DB_MIBS_DATABASE}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
     expose:
       - 5432
 
@@ -79,7 +81,8 @@ services:
       MAILNAME: smtp-dev
     expose:
       - 25
-
+      
 volumes:
   postgres_data:
     driver: local
+    

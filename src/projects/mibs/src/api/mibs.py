@@ -19,10 +19,8 @@ from auth import auth_token
 from auth_init import auth
 
 import re
-
-mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
-
 LOGGER = get_logger(__name__)
+mibs_blueprint = Blueprint('mibs', __name__, url_prefix='/mibs')
 
 @mibs_blueprint.route('', methods=['GET'])
 @auth.require_token
@@ -128,7 +126,7 @@ def _handle_post_put(is_put=False):
         email_recipients, sms_recipients, user_recipients, unknown_recipients = \
             _parse_recipients(body['recipients'])
         if len(unknown_recipients) > 0:
-            LOGGER.debug('Unknown recipient types')
+            LOGGER.info('Unknown recipient types')
             return False, (f'Unknown recipient types: {json.dumps(unknown_recipients)}', \
                 HTTPStatus.BAD_REQUEST), None
 
@@ -182,7 +180,6 @@ def _handle_post_put(is_put=False):
         message.email_recipients = email_recipients
 
         db.session.commit()
-
         return 'MessageInABottle was successfully updated', HTTPStatus.OK
 
     message = Message(
@@ -297,7 +294,7 @@ def delete_mibs_for_user(user_id: str, message_id: Union[None, str] = None) -> b
     if message_id is not None:
         query = query.filter(Message.message_id == message_id)
     count = query.count()
-    LOGGER.debug(f'Deleting {count} message(s) with ID, {message_id}')
+    LOGGER.info(f'Deleting {count} message(s) with ID, {message_id}')
     if count > 0:
         query.delete()
         db.session.commit()

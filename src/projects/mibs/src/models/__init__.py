@@ -21,7 +21,6 @@ class Message(db.Model):
         lazy=True,
         passive_deletes=True)
 
-
 class EmailMessageRecipient(db.Model):
     '''Database model for a recipient of a message in a bottle via email.'''
     __tablename__ = "EmailMessageRecipient"
@@ -32,8 +31,3 @@ class EmailMessageRecipient(db.Model):
     email = db.Column("email", db.Unicode, nullable=False)
     sent = db.Column("sent", db.Boolean, nullable=False, default=False)
     send_attempt_time = db.Column("sendAttemptTime", db.DateTime, default=None)
-
-
-
-
-
