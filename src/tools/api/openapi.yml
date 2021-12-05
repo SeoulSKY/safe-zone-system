@@ -18,7 +18,7 @@ paths:
               - User is authorized.
               - If messageId is present then a MessageInABottle with messageId
               must exist for the user
-
+              
             Postcondition: An list of 0 or more MessageInABottle.
               Case: messageId present.
                 A list of 1 MessageInABottle depending.
