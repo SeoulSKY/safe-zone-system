@@ -2,342 +2,342 @@ name: ci workflow
 on:
   workflow_dispatch: 
   push:
-    branches: [ master, ID*, ci-*, 229-smoke*]
+    branches: [ master, ID*, ci-*]
   pull_request:
     branches: [ master, ID* ]
 
 jobs:
-#   date-job:
-#     runs-on: ubuntu-latest
-#     outputs:
-#       date: ${{ steps.date.outputs.date }}
-#     steps:    
-#       - name: Set date (UTC)
-#         id: date
-#         run: echo ::set-output name=date::$(date +'%Y-%m-%d-%H-%M-%S') 
+  date-job:
+    runs-on: ubuntu-latest
+    outputs:
+      date: ${{ steps.date.outputs.date }}
+    steps:    
+      - name: Set date (UTC)
+        id: date
+        run: echo ::set-output name=date::$(date +'%Y-%m-%d-%H-%M-%S') 
 
-#   python-job:
-#     runs-on: ubuntu-latest
-#     strategy:
-#       matrix: { dir: ['cms', 'mibs'] } 
-#     env:
-#         project-path: 'src/projects'
-#         lib-path: ${{ github.workspace }}/src/lib
-#         cache-name: cache-requirements
-#         lint-file: ${{ github.workspace }}/'src/tools/lint_conf/pylintrc'
-#         ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts
-#         api-scripts: ${{ github.workspace }}/src/tools/api
-#         artifact-name: artifact-${{github.job}}-${{matrix.dir}}
-#     steps:
-#       - name: checkout repo
-#         uses: actions/checkout@v2
-#         with:
-#           lfs: true
+  python-job:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: { dir: ['cms', 'mibs'] } 
+    env:
+        project-path: 'src/projects'
+        lib-path: ${{ github.workspace }}/src/lib
+        cache-name: cache-requirements
+        lint-file: ${{ github.workspace }}/'src/tools/lint_conf/pylintrc'
+        ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts
+        api-scripts: ${{ github.workspace }}/src/tools/api
+        artifact-name: artifact-${{github.job}}-${{matrix.dir}}
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+        with:
+          lfs: true
 
-#       - name: python setup
-#         uses: actions/setup-python@v2
-#         with:
-#           python-version: 3.8
+      - name: python setup
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
 
-#       - name: java setup
-#         uses: actions/setup-java@v2
-#         with:
-#           distribution: adopt
-#           java-version: 11
+      - name: java setup
+        uses: actions/setup-java@v2
+        with:
+          distribution: adopt
+          java-version: 11
 
-#       - name: cache dependencies
-#         id: cache-step
-#         uses: actions/cache@v2
-#         with:
-#             path: ~/.cache/pip
-#             key: ${{ runner.os }}-pip-${{env.cache-name}}-${{ hashFiles('**/requirements.txt') }}
-#             restore-keys: |
-#                 ${{ runner.os }}-pip-${{env.cache-name}}
-#                 ${{ runner.os }}-pip-
+      - name: cache dependencies
+        id: cache-step
+        uses: actions/cache@v2
+        with:
+            path: ~/.cache/pip
+            key: ${{ runner.os }}-pip-${{env.cache-name}}-${{ hashFiles('**/requirements.txt') }}
+            restore-keys: |
+                ${{ runner.os }}-pip-${{env.cache-name}}
+                ${{ runner.os }}-pip-
                 
-#       - name: install pylint and virtualenv
-#         run: |
-#             pip install pylint
-#             pip install virtualenv
+      - name: install pylint and virtualenv
+        run: |
+            pip install pylint
+            pip install virtualenv
             
-#       - name: setup virtual environment in ${{env.project-path}}/${{ matrix.dir }}
-#         run: |
-#             python3 -m venv env-dir
-#             source env-dir/bin/activate
-#         working-directory: ${{env.project-path}}/${{ matrix.dir }}
+      - name: setup virtual environment in ${{env.project-path}}/${{ matrix.dir }}
+        run: |
+            python3 -m venv env-dir
+            source env-dir/bin/activate
+        working-directory: ${{env.project-path}}/${{ matrix.dir }}
         
-#       - name: install requirements
-#         run: pip install -r requirements.txt 
-#         working-directory: ${{env.project-path}}/${{ matrix.dir }}
+      - name: install requirements
+        run: pip install -r requirements.txt 
+        working-directory: ${{env.project-path}}/${{ matrix.dir }}
 
-#       - name: analyzing code with pylint
-#         run: |
-#             python3 -m pylint --rcfile ${{env.lint-file}} src
-#             python3 -m pylint --rcfile ${{env.lint-file}} test
-#         working-directory: ${{env.project-path}}/${{ matrix.dir }}
+      - name: analyzing code with pylint
+        run: |
+            python3 -m pylint --rcfile ${{env.lint-file}} src
+            python3 -m pylint --rcfile ${{env.lint-file}} test
+        working-directory: ${{env.project-path}}/${{ matrix.dir }}
 
-#       - name: generate python codegen from api file
-#         run: |
-#             bash ./gen_python_flask_api.sh
-#         working-directory: ${{env.api-scripts}}
+      - name: generate python codegen from api file
+        run: |
+            bash ./gen_python_flask_api.sh
+        working-directory: ${{env.api-scripts}}
 
-#       - name: testing python projects
-#         run: |
-#             export PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/${{env.project-path}}/${{ matrix.dir }}/src:${{ github.workspace }}/src:${{env.lib-path}}:${{env.lib-path}}/mibs/python/openapi
-#             python -m unittest discover
-#         working-directory: ${{env.project-path}}/${{ matrix.dir }}
+      - name: testing python projects
+        run: |
+            export PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/${{env.project-path}}/${{ matrix.dir }}/src:${{ github.workspace }}/src:${{env.lib-path}}:${{env.lib-path}}/mibs/python/openapi
+            python -m unittest discover
+        working-directory: ${{env.project-path}}/${{ matrix.dir }}
 
-#       - name: run coverage
-#         run: |
-#           pip install coverage
-#           export PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/${{env.project-path}}/${{ matrix.dir }}/src:${{ github.workspace }}/src:${{env.lib-path}}:${{env.lib-path}}/mibs/python/openapi
-#           coverage run -m unittest discover
-#         working-directory: ${{env.project-path}}/${{ matrix.dir }}
+      - name: run coverage
+        run: |
+          pip install coverage
+          export PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/${{env.project-path}}/${{ matrix.dir }}/src:${{ github.workspace }}/src:${{env.lib-path}}:${{env.lib-path}}/mibs/python/openapi
+          coverage run -m unittest discover
+        working-directory: ${{env.project-path}}/${{ matrix.dir }}
 
-#       - name: write job status to ci_status.json
-#         if: github.event_name == 'push'
-#         run: |
-#           bash ./post_job_status.sh ${{matrix.dir}} ${{job.status}} ${{github.job}} 
-#         working-directory: ${{env.ci-scripts}}
+      - name: write job status to ci_status.json
+        if: always()
+        run: |
+          bash ./post_job_status.sh ${{matrix.dir}} ${{job.status}} ${{github.job}} 
+        working-directory: ${{env.ci-scripts}}
 
-#       - name: upload job status artifact
-#         if: github.event_name == 'push'
-#         uses: actions/upload-artifact@v2
-#         with:
-#           name: ${{env.artifact-name}}
-#           path: ${{env.ci-scripts}}/ci_status.json
+      - name: upload job status artifact
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{env.artifact-name}}
+          path: ${{env.ci-scripts}}/ci_status.json
 
-#   react-native-job:
-#     runs-on: ubuntu-latest
-#     env:
-#       cache-name: cache-node-modules
-#       project-path: 'src/projects'
-#       dir: "react-native"
-#       node-version: 16
-#       ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts
-#       artifact-name: artifact-${{github.job}}
+  react-native-job:
+    runs-on: ubuntu-latest
+    env:
+      cache-name: cache-node-modules
+      project-path: 'src/projects'
+      dir: "react-native"
+      node-version: 16
+      ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts
+      artifact-name: artifact-${{github.job}}
 
-#     steps:
-#       - name: check out repository
-#         uses: actions/checkout@v2
+    steps:
+      - name: check out repository
+        uses: actions/checkout@v2
 
-#       - name: react-native setup
-#         uses: actions/setup-node@v1
-#         with: 
-#           node-version: ${{env.node-version}}
+      - name: react-native setup
+        uses: actions/setup-node@v1
+        with: 
+          node-version: ${{env.node-version}}
 
-#       - name: Get yarn cache directory path
-#         id: yarn-cache-dir-path
-#         run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
 
-#       - uses: actions/cache@v2
-#         id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
-#         with:
-#           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-#           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-#           restore-keys: |
-#             ${{ runner.os }}-yarn-
+      - uses: actions/cache@v2
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
 
-#       - name: install project dependencies
-#         run: |
-#           npm install -g yarn
-#           yarn install
-#         working-directory: ${{env.project-path}}/${{env.dir}}
+      - name: install project dependencies
+        run: |
+          npm install -g yarn
+          yarn install
+        working-directory: ${{env.project-path}}/${{env.dir}}
         
-#       - name: run lint
-#         run: |
-#           yarn add --dev eslint
-#           yarn run lint
-#         working-directory: ${{env.project-path}}/${{env.dir}}
+      - name: run lint
+        run: |
+          yarn add --dev eslint
+          yarn run lint
+        working-directory: ${{env.project-path}}/${{env.dir}}
 
-#       - name: run test
-#         run: yarn test
-#         working-directory: ${{env.project-path}}/${{env.dir}}
+      - name: run test
+        run: yarn test
+        working-directory: ${{env.project-path}}/${{env.dir}}
 
-#       - name: write job status to ci_status.json
-#         if: github.event_name == 'push'
-#         run: |
-#           chmod +x ./post_job_status.sh
-#           bash ./post_job_status.sh ${{github.job}} ${{job.status}}  
-#         working-directory: ${{env.ci-scripts}}
+      - name: write job status to ci_status.json
+        if: always()
+        run: |
+          chmod +x ./post_job_status.sh
+          bash ./post_job_status.sh ${{github.job}} ${{job.status}}  
+        working-directory: ${{env.ci-scripts}}
 
-#       - name: upload job status artifact
-#         if: github.event_name == 'push'
-#         uses: actions/upload-artifact@v2
-#         with: 
-#           name: ${{env.artifact-name}}
-#           path: ${{env.ci-scripts}}/ci_status.json
+      - name: upload job status artifact
+        if: always()
+        uses: actions/upload-artifact@v2
+        with: 
+          name: ${{env.artifact-name}}
+          path: ${{env.ci-scripts}}/ci_status.json
 
-#   web-job:
-#     runs-on: ubuntu-latest
-#     env:
-#       cache-name: cache-web-node-modules
-#       project-path: 'src/projects'
-#       dir: "web"
-#       node-version: 16
-#       ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts
-#       artifact-name: artifact-${{github.job}}
+  web-job:
+    runs-on: ubuntu-latest
+    env:
+      cache-name: cache-web-node-modules
+      project-path: 'src/projects'
+      dir: "web"
+      node-version: 16
+      ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts
+      artifact-name: artifact-${{github.job}}
 
-#     steps:
-#       - name: check out repository
-#         uses: actions/checkout@v2
+    steps:
+      - name: check out repository
+        uses: actions/checkout@v2
 
-#       - name: web setup; version=${{matrix.node-version}}
-#         uses: actions/setup-node@v1
-#         with: 
-#           node-version: ${{env.node-version}}
+      - name: web setup; version=${{matrix.node-version}}
+        uses: actions/setup-node@v1
+        with: 
+          node-version: ${{env.node-version}}
 
-#       - name: install project dependencies
-#         run: npm install
-#         working-directory: ${{env.project-path}}/${{env.dir}}
+      - name: install project dependencies
+        run: npm install
+        working-directory: ${{env.project-path}}/${{env.dir}}
 
-#       - name: run build
-#         run: npm run build --if-present
-#         working-directory: ${{env.project-path}}/${{env.dir}}
+      - name: run build
+        run: npm run build --if-present
+        working-directory: ${{env.project-path}}/${{env.dir}}
         
-#       - name: run lint
-#         run: npm run lint
-#         working-directory: ${{env.project-path}}/${{env.dir}}
+      - name: run lint
+        run: npm run lint
+        working-directory: ${{env.project-path}}/${{env.dir}}
 
-#       - name: run test
-#         run: npm test
-#         working-directory: ${{env.project-path}}/${{env.dir}}
+      - name: run test
+        run: npm test
+        working-directory: ${{env.project-path}}/${{env.dir}}
 
-#       - name: write job status to ci_status.json
-#         if: github.event_name == 'push'
-#         run: |
-#           chmod +x ./post_job_status.sh
-#           bash ./post_job_status.sh ${{github.job}} ${{job.status}}  
-#         working-directory: ${{env.ci-scripts}}
+      - name: write job status to ci_status.json
+        if: always()
+        run: |
+          chmod +x ./post_job_status.sh
+          bash ./post_job_status.sh ${{github.job}} ${{job.status}}  
+        working-directory: ${{env.ci-scripts}}
 
-#       - name: upload job status artifact
-#         if: github.event_name == 'push'
-#         uses: actions/upload-artifact@v2
-#         with: 
-#           name: ${{env.artifact-name}}
-#           path: ${{env.ci-scripts}}/ci_status.json
+      - name: upload job status artifact
+        if: always()
+        uses: actions/upload-artifact@v2
+        with: 
+          name: ${{env.artifact-name}}
+          path: ${{env.ci-scripts}}/ci_status.json
 
-#   docker-job:
-#     needs: [ date-job, python-job, react-native-job, web-job]
-#     runs-on: ubuntu-latest
-#     strategy:
-#       matrix: { dir: ['reverse-proxy', 'mibs', 'cms', 'keycloak', 'smtp-dev', 'postgres-dev', 'web'] }
-#     env: 
-#       src: 'src'
-#       projects: 'projects'
-#       projects-dir: 'projects/${{matrix.dir}}'
-#       src-projects-dir: 'src/projects/${{matrix.dir}}'
-#       latest: 'latest'
-#       master: 'master'
-#       registry: 'ghcr.io'
-#       ci-scripts: '${{ github.workspace }}/src/tools/ci/scripts'
-#       artifact-name: 'artifact-${{github.job}}-${{matrix.dir}}'
-#       registry-owner-dir: 'ghcr.io/universityofsaskatchewancmpt371/${{matrix.dir}}'
-#       true: 'true'
-#       false: 'false'
+  docker-job:
+    needs: [ date-job, python-job, react-native-job, web-job]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: { dir: ['reverse-proxy', 'mibs', 'cms', 'keycloak', 'smtp-dev', 'postgres-dev', 'web'] }
+    env: 
+      src: 'src'
+      projects: 'projects'
+      projects-dir: 'projects/${{matrix.dir}}'
+      src-projects-dir: 'src/projects/${{matrix.dir}}'
+      latest: 'latest'
+      master: 'master'
+      registry: 'ghcr.io'
+      ci-scripts: '${{ github.workspace }}/src/tools/ci/scripts'
+      artifact-name: 'artifact-${{github.job}}-${{matrix.dir}}'
+      registry-owner-dir: 'ghcr.io/universityofsaskatchewancmpt371/${{matrix.dir}}'
+      true: 'true'
+      false: 'false'
       
-#     permissions: 
-#       contents: read
-#       packages: write 
-#     steps:
-#       - name: Check out repo
-#         uses: actions/checkout@v2 
-#         with:
-#           lfs: true
+    permissions: 
+      contents: read
+      packages: write 
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v2 
+        with:
+          lfs: true
       
-#       - name: Log in to the Container registry
-#         uses: docker/login-action@v1
-#         with:
-#           registry: ${{ env.registry }}
-#           username: ${{ github.actor }}
-#           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.registry }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       
-#       - name: Set date (UTC)
-#         id: date
-#         run: echo ::set-output name=date::$(date +'%Y-%m-%d-%H-%M-%S')    
+      - name: Set date (UTC)
+        id: date
+        run: echo ::set-output name=date::$(date +'%Y-%m-%d-%H-%M-%S')    
       
-#       - name: Set branch name
-#         id: branch
-#         run: |
-#          if [[ ${{ github.event_name }} == 'push' ]]; then
-#            echo ::set-output name=branch::${GITHUB_REF#refs/*/}
-#          fi
-#          if [[ ${{ github.event_name }} == 'pull_request' ]]; then
-#            echo ::set-output name=branch::${{github.base_ref}}
-#          fi  
-#          exit 0
-#         shell: bash 
+      - name: Set branch name
+        id: branch
+        run: |
+         if [[ ${{ github.event_name }} == 'push' ]]; then
+           echo ::set-output name=branch::${GITHUB_REF#refs/*/}
+         fi
+         if [[ ${{ github.event_name }} == 'pull_request' ]]; then
+           echo ::set-output name=branch::${{github.base_ref}}
+         fi  
+         exit 0
+        shell: bash 
       
-#       - name: Set working directory variables
-#         id: directory-vars
-#         run: |
-#          if [[ ${{matrix.dir}} == 'mibs' || ${{matrix.dir}} == 'cms' || ${{matrix.dir}} == 'web' ]]; then
-#            echo ::set-output name=directory::${{env.src}}
-#            echo ::set-output name=cms-mibs-web::${{env.true}}
-#            echo ::set-output name=reverse-proxy-keycloak-postgres-dev-smtp-dev::${{env.false}}
-#          fi
-#          if [[ ${{matrix.dir}} == 'reverse-proxy' || ${{matrix.dir}} == 'keycloak' || ${{matrix.dir}} == 'postgres-dev' || ${{matrix.dir}} == 'smtp-dev' ]] ; then
-#            echo ::set-output name=directory::${{github.workspace}}
-#            echo ::set-output name=cms-mibs-web::${{env.false}}
-#            echo ::set-output name=reverse-proxy-keycloak-postgres-dev-smtp-dev::${{env.true}}
-#          fi
-#          exit 0
-#         shell: bash
+      - name: Set working directory variables
+        id: directory-vars
+        run: |
+         if [[ ${{matrix.dir}} == 'mibs' || ${{matrix.dir}} == 'cms' || ${{matrix.dir}} == 'web' ]]; then
+           echo ::set-output name=directory::${{env.src}}
+           echo ::set-output name=cms-mibs-web::${{env.true}}
+           echo ::set-output name=reverse-proxy-keycloak-postgres-dev-smtp-dev::${{env.false}}
+         fi
+         if [[ ${{matrix.dir}} == 'reverse-proxy' || ${{matrix.dir}} == 'keycloak' || ${{matrix.dir}} == 'postgres-dev' || ${{matrix.dir}} == 'smtp-dev' ]] ; then
+           echo ::set-output name=directory::${{github.workspace}}
+           echo ::set-output name=cms-mibs-web::${{env.false}}
+           echo ::set-output name=reverse-proxy-keycloak-postgres-dev-smtp-dev::${{env.true}}
+         fi
+         exit 0
+        shell: bash
       
-#       - name: Build and publish ${{matrix.path}} docker image for master branch
-#         run: | 
-#          if [[ (${{steps.directory-vars.outputs.cms-mibs-web}} == ${{env.true}}) && ${{steps.branch.outputs.branch}} == ${{env.master}} ]]; then
-#            docker build --tag ${{env.registry-owner-dir}}:${{env.latest}} --file ${{env.projects-dir}}/Dockerfile .
-#            docker build --tag ${{env.registry-owner-dir}}:${{env.master}} --file ${{env.projects-dir}}/Dockerfile .
-#            docker build --tag ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}} --file ${{env.projects-dir}}/Dockerfile .
-#            docker push ${{env.registry-owner-dir}}:${{env.latest}}
-#            docker push ${{env.registry-owner-dir}}:${{env.master}}
-#            docker push ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}}       
-#          fi
-#          if [[ (${{steps.directory-vars.outputs.reverse-proxy-keycloak-postgres-dev-smtp-dev}} == ${{env.true}}) && (${{steps.branch.outputs.branch}} == ${{env.master}}) ]]; then
-#            docker build --tag ${{env.registry-owner-dir}}:${{env.latest}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
-#            docker build --tag ${{env.registry-owner-dir}}:${{env.master}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
-#            docker build --tag ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
-#            docker push ${{env.registry-owner-dir}}:${{env.latest}}
-#            docker push ${{env.registry-owner-dir}}:${{env.master}}
-#            docker push ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}}     
-#          fi
-#          exit 0
-#         shell: bash
-#         working-directory: ${{steps.directory-vars.outputs.directory}}
+      - name: Build and publish ${{matrix.path}} docker image for master branch
+        run: | 
+         if [[ (${{steps.directory-vars.outputs.cms-mibs-web}} == ${{env.true}}) && ${{steps.branch.outputs.branch}} == ${{env.master}} ]]; then
+           docker build --tag ${{env.registry-owner-dir}}:${{env.latest}} --file ${{env.projects-dir}}/Dockerfile .
+           docker build --tag ${{env.registry-owner-dir}}:${{env.master}} --file ${{env.projects-dir}}/Dockerfile .
+           docker build --tag ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}} --file ${{env.projects-dir}}/Dockerfile .
+           docker push ${{env.registry-owner-dir}}:${{env.latest}}
+           docker push ${{env.registry-owner-dir}}:${{env.master}}
+           docker push ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}}       
+         fi
+         if [[ (${{steps.directory-vars.outputs.reverse-proxy-keycloak-postgres-dev-smtp-dev}} == ${{env.true}}) && (${{steps.branch.outputs.branch}} == ${{env.master}}) ]]; then
+           docker build --tag ${{env.registry-owner-dir}}:${{env.latest}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
+           docker build --tag ${{env.registry-owner-dir}}:${{env.master}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
+           docker build --tag ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
+           docker push ${{env.registry-owner-dir}}:${{env.latest}}
+           docker push ${{env.registry-owner-dir}}:${{env.master}}
+           docker push ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}}     
+         fi
+         exit 0
+        shell: bash
+        working-directory: ${{steps.directory-vars.outputs.directory}}
         
-#       - name: Build and publish ${{matrix.path}} docker image for ID* branch
-#         run: | 
-#          if [[ (${{steps.directory-vars.outputs.cms-mibs-web}} == ${{env.true}}) && ${{steps.branch.outputs.branch}} =~ [I][D][0-9]* ]]; then
-#            docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}} --file ${{env.projects-dir}}/Dockerfile .
-#            docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}${{needs.date-job.outputs.date}} --file ${{env.projects-dir}}/Dockerfile .
-#            docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}
-#            docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}}       
-#          fi
-#          if [[ (${{steps.directory-vars.outputs.reverse-proxy-keycloak-postgres-dev-smtp-dev}} == ${{env.true}}) && ${{steps.branch.outputs.branch}} =~ [I][D][0-9]* ]]; then
-#            docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
-#            docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
-#            docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}
-#            docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}}      
-#          fi
-#          exit 0
-#         shell: bash
-#         working-directory: ${{steps.directory-vars.outputs.directory}}   
+      - name: Build and publish ${{matrix.path}} docker image for ID* branch
+        run: | 
+         if [[ (${{steps.directory-vars.outputs.cms-mibs-web}} == ${{env.true}}) && ${{steps.branch.outputs.branch}} =~ [I][D][0-9]* ]]; then
+           docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}} --file ${{env.projects-dir}}/Dockerfile .
+           docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}${{needs.date-job.outputs.date}} --file ${{env.projects-dir}}/Dockerfile .
+           docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}
+           docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}}       
+         fi
+         if [[ (${{steps.directory-vars.outputs.reverse-proxy-keycloak-postgres-dev-smtp-dev}} == ${{env.true}}) && ${{steps.branch.outputs.branch}} =~ [I][D][0-9]* ]]; then
+           docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
+           docker build --tag ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
+           docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}
+           docker push ${{env.registry-owner-dir}}:${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}}      
+         fi
+         exit 0
+        shell: bash
+        working-directory: ${{steps.directory-vars.outputs.directory}}   
       
-#       - name: write job status to ci_status.json
-#         if: github.event_name == 'push'
-#         run: bash ./post_job_status.sh ${{matrix.dir}} ${{job.status}} ${{github.job}} 
-#         working-directory: ${{env.ci-scripts}}
+      - name: write job status to ci_status.json
+        if: always()
+        run: bash ./post_job_status.sh ${{matrix.dir}} ${{job.status}} ${{github.job}} 
+        working-directory: ${{env.ci-scripts}}
 
-#       - name: upload job status artifact
-#         if: github.event_name == 'push'
-#         uses: actions/upload-artifact@v2
-#         with: 
-#           name: ${{env.artifact-name}}
-#           path: ${{env.ci-scripts}}/ci_status.json
+      - name: upload job status artifact
+        if: always()
+        uses: actions/upload-artifact@v2
+        with: 
+          name: ${{env.artifact-name}}
+          path: ${{env.ci-scripts}}/ci_status.json
 
   smoke-test:
-    # needs: [ date-job, docker-job ]
+    needs: [ date-job, docker-job ]
     runs-on: ubuntu-latest
     env: 
       ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts  
@@ -365,7 +365,7 @@ jobs:
           registry: ${{ env.registry }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: run containers
         run: docker-compose -f docker-compose.yml -f local/docker-compose.postgres.yml --env-file local/local-test.env up -d
         working-directory: ${{env.docker-dir}}
@@ -400,87 +400,86 @@ jobs:
           name: ${{env.artifact-name}}
           path: ${{env.ci-scripts}}/ci_status.json
 
-#   publish-android-apk:
-#     if: github.event_name == 'push'
-#     needs: [date-job, smoke-test]
-#     runs-on: ubuntu-latest
-#     env:
-#       project-path: 'src/projects'
-#       dir: "react-native"
-#       node-version: 16
-#       home-dir: "/home/runner/"
-#       ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts  
-#       artifact-name: artifact-${{github.job}}
+  publish-android-apk:
+    if: github.event_name == 'push'
+    needs: [date-job, smoke-test]
+    runs-on: ubuntu-latest
+    env:
+      project-path: 'src/projects'
+      dir: "react-native"
+      node-version: 16
+      home-dir: "/home/runner/"
+      ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts  
+      artifact-name: artifact-${{github.job}}
 
-#     steps:
-#       - name: checkout repo
-#         uses: actions/checkout@v2
-#         with:
-#           lfs: true
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+        with:
+          lfs: true
 
-#       - name: java 8 setup
-#         uses: actions/setup-java@v2
-#         with:
-#           distribution: adopt
-#           java-version: 8
+      - name: java 8 setup
+        uses: actions/setup-java@v2
+        with:
+          distribution: adopt
+          java-version: 8
 
-#       - name: react-native setup
-#         uses: actions/setup-node@v1
-#         with: 
-#           node-version: ${{env.node-version}}
+      - name: react-native setup
+        uses: actions/setup-node@v1
+        with: 
+          node-version: ${{env.node-version}}
 
-#       - name: install dependencies
-#         run: |
-#           npm install -g turtle-cli
-#           yarn add expo-cli
-#           yarn add expo
-#           yarn install
-#         working-directory: ${{env.project-path}}/${{env.dir}}
+      - name: install dependencies
+        run: |
+          npm install -g turtle-cli
+          yarn add expo-cli
+          yarn add expo
+          yarn install
+        working-directory: ${{env.project-path}}/${{env.dir}}
 
-#       - name: set prebuild environment
-#         run: |
-#           echo 'export PATH=$PATH:~/.npm-global/bin' >> ~/.bash_profile
-#           source ~/.bash_profile
-#           yarn run pre-apkbuild
-#         working-directory: ${{env.project-path}}/${{env.dir}}
+      - name: set prebuild environment
+        run: |
+          echo 'export PATH=$PATH:~/.npm-global/bin' >> ~/.bash_profile
+          source ~/.bash_profile
+          yarn run pre-apkbuild
+        working-directory: ${{env.project-path}}/${{env.dir}}
 
-#       - name: get branch name
-#         id: branch
-#         run: |
-#          if [[ ${{ github.event_name }} == 'push' ]]; then
-#            echo ::set-output name=branch::${GITHUB_REF#refs/*/}
-#          fi
+      - name: get branch name
+        id: branch
+        run: |
+         if [[ ${{ github.event_name }} == 'push' ]]; then
+           echo ::set-output name=branch::${GITHUB_REF#refs/*/}
+         fi
 
-#       - name: build android apk
-#         run: yarn run dev-build-android
-#         working-directory: ${{env.project-path}}/${{env.dir}}
+      - name: build android apk
+        run: yarn run dev-build-android
+        working-directory: ${{env.project-path}}/${{env.dir}}
 
-#       - name: upload apk
-#         uses: actions/upload-artifact@v2
-#         with: 
-#           name: "android-apk.${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}}"
-#           path: ${{env.home-dir}}/expo-apps/*.apk
+      - name: upload apk
+        uses: actions/upload-artifact@v2
+        with: 
+          name: "android-apk.${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}}"
+          path: ${{env.home-dir}}/expo-apps/*.apk
 
-#       - name: clear expo-apps directory
-#         run: rm -rf ${{env.home-dir}}/expo-apps/*
-#         working-directory: ${{env.project-path}}/${{env.dir}}
+      - name: clear expo-apps directory
+        run: rm -rf ${{env.home-dir}}/expo-apps/*
+        working-directory: ${{env.project-path}}/${{env.dir}}
 
-#       - name: write job status to ci_status.json
-#         if: github.event_name == 'push'
-#         run: bash ./post_job_status.sh ${{github.job}} ${{job.status}} 
-#         working-directory: ${{env.ci-scripts}}
+      - name: write job status to ci_status.json
+        if: always()
+        run: bash ./post_job_status.sh ${{github.job}} ${{job.status}} 
+        working-directory: ${{env.ci-scripts}}
 
-#       - name: upload job status artifact
-#         if: github.event_name == 'push'
-#         uses: actions/upload-artifact@v2
-#         with: 
-#           name: ${{env.artifact-name}}
-#           path: ${{env.ci-scripts}}/ci_status.json
+      - name: upload job status artifact
+        if: always()
+        uses: actions/upload-artifact@v2
+        with: 
+          name: ${{env.artifact-name}}
+          path: ${{env.ci-scripts}}/ci_status.json
 
   publish-status-report-job:
     if: always()
-    # needs: [date-job, python-job, react-native-job, web-job, docker-job, smoke-test, publish-android-apk]
-    needs: [smoke-test]
+    needs: [date-job, python-job, react-native-job, web-job, docker-job, smoke-test, publish-android-apk]
     runs-on: ubuntu-latest
     env:
       project-path: 'src/projects'
