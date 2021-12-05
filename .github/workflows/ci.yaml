@@ -345,7 +345,7 @@ jobs:
       docker-dir: ${{ github.workspace }}/docker/test
       test-dir: ${{ github.workspace }}/test/
     steps:
-      - nname: checkout repo
+      - name: checkout repo
         uses: actions/checkout@v2
         with:
           lfs: true
