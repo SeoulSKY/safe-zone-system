@@ -156,16 +156,16 @@ class TestMibsApi(unittest.TestCase):
             'sendTime': '2021-10-27T23:22:19.911Z'
         }
 
-        self.test_put_invalid_message_id= {
-                    'messageId': 'helloUniverse',
-                    'message': 'new test message',
-                    'recipients': [
-                    {
-                        'email': 'test@.com'
-                    }
-                    ],
-                    'sendTime': '2021-10-27T23:22:19.911Z'
-                }
+        self.test_put_invalid_messageId= {
+            'messageId': 'helloUniverse',
+            'message': 'new test message',
+            'recipients': [
+            {
+                'email': 'test@.com'
+            }
+            ],
+            'sendTime': '2021-10-27T23:22:19.911Z'
+        }
 
     def tearDown(self):
         with self.app.app_context():
@@ -269,7 +269,7 @@ class TestMibsApi(unittest.TestCase):
         '''
         response = self.client.put(
             '/mibs',
-            json=self.test_put_invalid_message_id,
+            json=self.test_put_invalid_messageId,
             headers={'Authorization': 'Bearer ' + self.get_token()}
         )
 
@@ -882,7 +882,7 @@ class TestMibsApi(unittest.TestCase):
         '''
         Test DELETE /mibs with invalid messageId when when user has no mib
         '''
-        invalid_message_id= "helloUniverse"
+        invalid_message_id= 'helloUniverse'
         with self.app.app_context():
             response = self.client.delete(f'/mibs?messageId={invalid_message_id}',
                 headers={'Authorization': 'Bearer ' + self.get_token()})
@@ -896,7 +896,7 @@ class TestMibsApi(unittest.TestCase):
         Test DELETE /mibs with invalid messageId when when user has one mib
         '''
         self.create_message()
-        invalid_message_id= "helloUniverse"
+        invalid_message_id= 'helloUniverse'
         with self.app.app_context():
             response = self.client.delete(f'/mibs?messageId={invalid_message_id}',
                 headers={'Authorization': 'Bearer ' + self.get_token()})
@@ -911,7 +911,7 @@ class TestMibsApi(unittest.TestCase):
         '''
         self.create_message()
         self.create_message(message_id=2)
-        invalid_message_id= "helloUniverse"
+        invalid_message_id= 'helloUniverse'
         with self.app.app_context():
             response = self.client.delete(f'/mibs?messageId={invalid_message_id}',
                 headers={'Authorization': 'Bearer ' + self.get_token()})
