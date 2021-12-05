@@ -342,7 +342,7 @@ jobs:
     env: 
       ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts  
       artifact-name: artifact-${{github.job}}
-      docker-dev: ${{ github.workspace }}/docker/dev
+      docker-dir: ${{ github.workspace }}/docker/test
       test-dir: ${{ github.workspace }}/test/
     steps:
       - name: checkout repo
@@ -356,14 +356,16 @@ jobs:
           python-version: 3.8
 
       - name: run containers
-        run: docker-compose -f docker-compose.yml --env-file dev.env up -d --build
-        working-directory: ${{env.docker-dev}}
+        run: docker-compose -f docker-compose.yml --env-file test.env up -d --build
+        working-directory: ${{env.docker-dir}}
         
       - name: list running containers
         run: docker ps
 
       - name: install dependencies
-        run: pip install -r requirements.txt 
+        run: |
+        apt-get update && apt-get upgrade python-pip
+        pip install -r requirements.txt 
         working-directory: ${{env.test-dir}}
 
       - name: run smoke test scripts
