@@ -22,7 +22,8 @@ class EmailService:
         send email sequentially and update recipient.sent column to true
         '''
         for recipient in recipients:
-            LOGGER.debug(f"messageid => {message_id}, message => {message}, recipients => {recipients}")
+            LOGGER.debug(f'messageid => {message_id}, \
+            message => {message}, recipients => {recipients}')
             assert len(message) > 0
             assert message_id is not None
             recipient_email_address = recipient['email']
