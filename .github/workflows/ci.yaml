@@ -356,7 +356,7 @@ jobs:
           python-version: 3.8
 
       - name: run containers
-        run: docker-compose -f docker-compose.yml --env-file test.env up -d --build
+        run: docker-compose -f docker-compose.yml -f local/docker-compose.postgres.yml --env-file local/local-test.env -d --build
         working-directory: ${{env.docker-dir}}
         
       - name: list running containers
