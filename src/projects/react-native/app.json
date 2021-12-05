@@ -1,5 +1,6 @@
 {
   "expo": {
+    "sdkVersion": "43.0.0",
     "name": "react-native",
     "slug": "react-native",
     "version": "1.0.0",

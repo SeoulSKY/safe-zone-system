@@ -8,24 +8,24 @@ services:
       - 80:80
     restart: always
     depends_on:
-      - web
-      - cms
+      # - web
+      # - cms
       - mibs
       - keycloak
 
-  web:
-    build:
-      context: ../../src
-      dockerfile: projects/web/Dockerfile
-    expose:
-      - 80
+  # web:
+  #   build:
+  #     context: ../../src
+  #     dockerfile: projects/web/Dockerfile
+  #   expose:
+  #     - 80
 
-  cms:
-    build:
-      context: ../../src
-      dockerfile: projects/cms/Dockerfile
-    expose:
-      - 80
+  # cms:
+  #   build:
+  #     context: ../../src
+  #     dockerfile: projects/cms/Dockerfile
+  #   expose:
+  #     - 80
 
   mibs:
     build:
@@ -36,6 +36,7 @@ services:
       DB_DATABASE: ${DB_MIBS_DATABASE}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
+      AUTH_ISSUER: ${AUTH_ISSUER}
     depends_on:
       - postgres
     expose:
@@ -72,7 +73,7 @@ services:
       - postgres
     expose:
       - 8080
-      
+
   smtp-dev:
     build:
       context: ../../src/projects/smtp-dev
@@ -80,6 +81,7 @@ services:
       MAILNAME: smtp-dev
     expose:
       - 25
+      
 volumes:
   postgres_data:
     driver: local

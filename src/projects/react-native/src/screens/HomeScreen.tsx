@@ -1,40 +1,41 @@
-import React, {ReactElement, useEffect, useState} from 'react';
+import React, {ReactElement, useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {Login} from '@/components/Login';
-import {safeZoneURI} from '@/common/constants';
-
-/**
-import { MibsApi } from 'mibs';
-const mibsApi = new MibsApi() // test mibs import
-**/
+import {ServerSelector} from '@/components/common';
 
 /**
  * Home Screen
  * @method
  * @return {ReactElement}
  */
-export default function HomeScreen(): ReactElement {
-  const [cmsText, setCmsText] = useState('No Response');
+export function HomeScreen(): ReactElement {
+  // const [cmsText, setCmsText] = useState('No Response');
   const [mibsText, setMibsText] = useState('No Response');
 
-  useEffect(() => {
-    fetch(`http://${safeZoneURI}/cms/hello`, {method: 'GET'})
-        .then((response: Response) => response.text())
-        .then(setCmsText)
-        .catch((error: Error) => setCmsText(`Error: ${error.message}`));
+  const serverSelectorCallback = (serverTarget: string) => {
+  //   fetch(`http://${serverTarget}/cms/hello`, {method: 'GET'})
+  //       .then((response: Response) => response.text()
+  //           .then(setCmsText)
+  //           .catch((error: Error) => setCmsText(`Error: ${error.message}`))
+  //       )
+  //       .catch((error: Error) => setCmsText(`Error: ${error.message}`));
 
-    fetch(`http://${safeZoneURI}/mibs/hello`, {method: 'GET'})
-        .then((response: Response) => response.text())
-        .then(setMibsText)
+
+    fetch(`http://${serverTarget}/mibs/hello`, {method: 'GET'})
+        .then((response: Response) => response.text()
+            .then(setMibsText)
+            .catch((error: Error) => setMibsText(`Error: ${error.message}`))
+        )
         .catch((error: Error) => setMibsText(`Error: ${error.message}`));
-  }, [setCmsText, setMibsText]);
+  };
 
   return (
     <View style={styles.container}>
       <Text>Home Screen</Text>
-      <Text>{`CMS Response: ${cmsText}`}</Text>
+      {/* <Text>{`CMS Response: ${cmsText}`}</Text> */}
       <Text>{`MIBS Response: ${mibsText}`}</Text>
       <Login/>
+      <ServerSelector onUpdate={serverSelectorCallback}/>
     </View>
   );
 }
