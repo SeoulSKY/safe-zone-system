@@ -53,8 +53,9 @@ get_status(){
             value=$(jq ".\"$2\"" $1/$ci_status_json)
         fi
 
-        if [ "$value" = "$failure" ];then
-            status="$failure"
+        # if [ "$value" = "$failure" ];then
+        if [ $value = $failure ];then
+            status=$failure
         fi
         
         echo $value
