@@ -291,7 +291,7 @@ jobs:
            docker push ${{env.registry-owner-dir}}:${{env.master}}
            docker push ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}}
          fi
-         if [[ (${{steps.directory-vars.outputs.reverse-proxy-keycloak-postgres-dev-smtp-dev}} == ${{env.true}}) && (${{steps.branch.outputs.branch}} == ${{env.master}}) ]]; then
+         if [[ (${{steps.directory-vars.outputs.reverse-proxy-keycloak-postgres-dev-smtp-dev}} == ${{env.true}}) && (${{steps.branch.outputs.branch}} == ${{env.master}}) && ${{matrix.dir}} != 'keycloak' ]]; then
            docker build --tag ${{env.registry-owner-dir}}:${{env.latest}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
            docker build --tag ${{env.registry-owner-dir}}:${{env.master}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
            docker build --tag ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}} --file ${{env.src-projects-dir}}/Dockerfile ./${{env.src-projects-dir}}
