@@ -468,7 +468,8 @@ jobs:
 
   publish-status-report-job:
     if: always()
-    needs: [date-job, python-job, react-native-job, web-job, docker-job, smoke-test, publish-android-apk]
+    # needs: [date-job, python-job, react-native-job, web-job, docker-job, smoke-test, publish-android-apk]
+    needs: [smoke-test]
     runs-on: ubuntu-latest
     env:
       project-path: 'src/projects'
