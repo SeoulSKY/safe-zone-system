@@ -16,10 +16,7 @@ android_apk_publish_job="publish-android-apk"
 #VARIABLES
 success="success"
 failure="failure"
-value=""
-
 description=""
-status=$success
 
 ci_status_json=ci_status.json
 
@@ -53,11 +50,7 @@ get_status(){
             value=$(jq ".\"$2\"" $1/$ci_status_json)
         fi
 
-        if [ "$value" = "$failure" ];then
-            status="$failure"
-        fi
-        
-        echo $value
+        echo "$value"
     else
         echo "unknown"
     fi
@@ -69,62 +62,104 @@ populate_description(){
 }
 
 report(){
-
+    status=$success
     # populate docker-cms job status
     stat="$(get_status $docker_cms_dir $docker_job 'cms')"
     populate_description "docker-cms[$stat], \n"
+    if [ "$stat" != "$success" ];then
+        status=$failure
+    fi
 
     # populate docker-keycloak job status
     stat="$(get_status $docker_keycloak_dir $docker_job 'keycloak')"
     populate_description "docker-keycloak[$stat], \n"
-
+    if [ "$stat" != "$success" ];then
+        status=$failure
+    fi
+    
     # populate docker-mibs job status
     stat="$(get_status $docker_mibs_dir $docker_job 'mibs')"
     populate_description "docker-mibs[$stat], \n"
+    if [ "$stat" != "$success" ];then
+        status=$failure
+    fi
 
     # populate docker-postgres-dev job status
     stat="$(get_status $docker_postgres_dev_dir $docker_job 'postgres-dev')"
     populate_description "docker-postgres-dev[$stat], \n"
+    if [ "$stat" != "$success" ];then
+        status=$failure
+    fi
 
     # populate docker-reverse-proxy job status
     stat="$(get_status $docker_reverse_proxy_dir $docker_job 'reverse-proxy')"
     populate_description "docker-reverse-proxy[$stat], \n"
+    if [ "$stat" != "$success" ];then
+        status=$failure
+    fi
 
     # populate docker-smtp-dev job status
     stat="$(get_status $docker_smtp_dev_dir $docker_job "smtp-dev")"
     populate_description "docker-smtp-dev[$stat], \n"
+    if [ "$stat" != "$success" ];then
+        status=$failure
+    fi
 
     # populate docker-web job status
     stat="$(get_status $docker_web_dir $docker_job "web")"
     populate_description "docker-web[$stat], \n"
+    if [ "$stat" != "$success" ];then
+        status=$failure
+    fi
 
     # populate docker-mibs job status
     stat="$(get_status $docker_mibs_dir $docker_job "mibs")"
     populate_description "docker-mibs[$stat], \n"
+    if [ "$stat" != "$success" ];then
+        status=$failure
+    fi
 
     # populate python-cms job status
     stat="$(get_status $python_cms_dir $python_job "cms")"
     populate_description "python-cms[$stat], \n"
+    if [ "$stat" != "$success" ];then
+        status=$failure
+    fi
 
     # populate python-mibs job status
     stat="$(get_status $python_mibs_dir $python_job "mibs")"
     populate_description "python-mibs[$stat], \n"
+    if [ "$stat" != "$success" ];then
+        status=$failure
+    fi
 
     # populate react-native job status
     stat="$(get_status $react_native_dir $react_native_job)"
     populate_description "react-native[$stat], \n"
+    if [ "$stat" != "$success" ];then
+        status=$failure
+    fi
 
     # populate web job status
     stat="$(get_status $web_dir $web_job)"
     populate_description "web[$stat], \n"
+    if [ "$stat" != "$success" ];then
+        status=$failure
+    fi
 
     # populate smoke test job status
     stat="$(get_status $smoke_test_dir $smoke_test_job)"
     populate_description "smoke-test[$stat] \n"
+    if [ "$stat" != "$success" ];then
+        status=$failure
+    fi
 
     # populate android apk build job status
     stat="$(get_status $android_apk_publish_dir $android_apk_publish_job)"
     populate_description "android-apk-publish[$stat] \n"
+    if [ "$stat" != "$success" ];then
+        status=$failure
+    fi
 
     description+="$status"
     echo $description
