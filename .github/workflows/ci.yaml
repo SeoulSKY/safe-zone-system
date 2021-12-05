@@ -271,7 +271,7 @@ jobs:
          if [[ ${{matrix.dir}} == 'mibs' || ${{matrix.dir}} == 'cms' || ${{matrix.dir}} == 'web' ]]; then
            echo ::set-output name=directory::${{env.src}}
            echo ::set-output name=cms-mibs-web::${{env.true}}
-           echo ::set-output name=reverse-proxy-keycloak-postgres-dev-smtp-dev::${{env.false}}
+           echo ::set-output name=reverse-proxy-postgres-dev-smtp-dev::${{env.false}}
          fi
          if [[ ${{matrix.dir}} == 'reverse-proxy' || ${{matrix.dir}} == 'postgres-dev' || ${{matrix.dir}} == 'smtp-dev' ]] ; then
            echo ::set-output name=directory::${{github.workspace}}
