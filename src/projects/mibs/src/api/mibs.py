@@ -100,7 +100,8 @@ def _handle_post_put(is_put=False):
             return False, ('"messageId" missing from request body', HTTPStatus.BAD_REQUEST), None
 
         if is_put and not isinstance(body['messageId'], int):
-            return False, ('invalid messageId: messageId must be an integer', HTTPStatus.BAD_REQUEST), None
+            return False, ('invalid messageId: messageId must be an integer', \
+                   HTTPStatus.BAD_REQUEST), None
 
         if not 'message' in body:
             return False, ('"message" missing from request body', HTTPStatus.BAD_REQUEST), None
