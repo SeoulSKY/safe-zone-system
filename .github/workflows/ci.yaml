@@ -1,6 +1,5 @@
 name: ci workflow
 on:
-  workflow_dispatch:
   push:
     branches: [ master, ID*, ci-*]
   pull_request:
@@ -107,6 +106,7 @@ jobs:
         with:
           name: ${{env.artifact-name}}
           path: ${{env.ci-scripts}}/ci_status.json
+          retention-days: 0
 
   react-native-job:
     runs-on: ubuntu-latest
@@ -168,6 +168,7 @@ jobs:
         with:
           name: ${{env.artifact-name}}
           path: ${{env.ci-scripts}}/ci_status.json
+          retention-days: 0
 
   web-job:
     runs-on: ubuntu-latest
@@ -217,6 +218,7 @@ jobs:
         with:
           name: ${{env.artifact-name}}
           path: ${{env.ci-scripts}}/ci_status.json
+          retention-days: 0
 
   docker-job:
     needs: [ date-job, python-job, react-native-job, web-job]
@@ -332,40 +334,64 @@ jobs:
         with:
           name: ${{env.artifact-name}}
           path: ${{env.ci-scripts}}/ci_status.json
+          retention-days: 0
 
   smoke-test:
-    needs: [ date-job, docker-job ]
+    # needs: [ date-job, docker-job ]
     runs-on: ubuntu-latest
     env:
       ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts
       artifact-name: artifact-${{github.job}}
-      docker-dev: ${{ github.workspace }}/docker/dev
+      docker-dir: ${{ github.workspace }}/docker/test
+      test-dir: ${{ github.workspace }}/test/
+      registry: ghcr.io
+
+    permissions:
+      packages: write
+      contents: read
     steps:
       - name: checkout repo
         uses: actions/checkout@v2
         with:
           lfs: true
 
-      - name: run containers
-        run: docker-compose -f docker-compose.yml --env-file dev.env up -d --build
-        working-directory: ${{env.docker-dev}}
-
-      - name: sleep for 30 seconds
-        uses: jakejarvis/wait-action@master
+      - name: python setup
+        uses: actions/setup-python@v2
         with:
-          time: '30s'
+          python-version: 3.8
 
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.registry }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: run containers
+        run: AUTH_ISSUER='safezone-test.usask.ca' TAG=${{needs.date-job.outputs.date}} docker-compose -f docker-compose.yml -f local/docker-compose.postgres.yml --env-file local/local-test.env up -d
+        working-directory: ${{env.docker-dir}}
+        
       - name: list running containers
         run: docker ps
 
+      - name: install dependencies
+        run: |
+          apt-get update && apt-get upgrade python-pip
+          pip install -r requirements.txt 
+        working-directory: ${{env.test-dir}}
+
+      - name: run smoke test scripts
+        run: python3 smoke_tests/smoke_test.py
+        working-directory: ${{env.test-dir}}
+        
       - name: stop containers
         if: always()
-        run: docker-compose -f docker-compose.yml down
-        working-directory: ${{env.docker-dev}}
+        run: TAG=${{needs.date-job.outputs.date}} docker-compose -f docker-compose.yml -f local/docker-compose.postgres.yml --env-file local/local-test.env down
+        working-directory: ${{env.docker-dir}}
 
       - name: write job status to ci_status.json
         if: always()
-        run: bash ./post_job_status.sh ${{github.job}} ${{job.status}}
+        run: bash ./post_job_status.sh ${{github.job}} ${{job.status}} 
         working-directory: ${{env.ci-scripts}}
 
       - name: upload job status artifact
@@ -374,6 +400,7 @@ jobs:
         with:
           name: ${{env.artifact-name}}
           path: ${{env.ci-scripts}}/ci_status.json
+          retention-days: 0
 
   publish-android-apk:
     if: github.event_name == 'push'
@@ -451,6 +478,7 @@ jobs:
         with:
           name: "android-apk.${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}}"
           path: ${{env.home-dir}}/expo-apps/*.apk
+          retention-days: 0
 
       - name: clear expo-apps directory
         run: rm -rf ${{env.home-dir}}/expo-apps/*
@@ -467,6 +495,7 @@ jobs:
         with:
           name: ${{env.artifact-name}}
           path: ${{env.ci-scripts}}/ci_status.json
+          retention-days: 0
 
   publish-status-report-job:
     if: always()
