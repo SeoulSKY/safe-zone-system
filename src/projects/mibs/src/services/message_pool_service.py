@@ -9,7 +9,9 @@ from datetime import timedelta, datetime
 from models import Message, EmailMessageRecipient, db
 from lib.mibs.python.openapi.swagger_server.models import MessageInABottle, EmailRecipient
 from services.email_service import EmailService
+from lib.logger.safezone_logger import get_logger
 
+LOGGER = get_logger(__name__)
 POLL_INTERVAL = 30.0
 MESSAGE_AGE_LIMIT = timedelta(minutes=1)
 
@@ -27,7 +29,7 @@ class MessagePoolingService(Process):
     def run(self):
         ''' Begin thread operation '''
         while not self._cancelled:
-            print('Pooling unsent messages...')
+            LOGGER.info('Pooling unsent messages...')
             self._get_unsent_mibs_older_than_message_age_limit()
             time.sleep(POLL_INTERVAL)
 
@@ -47,7 +49,7 @@ class MessagePoolingService(Process):
         '''
         self._current_time = datetime.utcnow()
         message_age_limit_in_datetime = self._current_time - MESSAGE_AGE_LIMIT
-        print(f"target_time => {message_age_limit_in_datetime}")
+        LOGGER.info(f"target_time => {message_age_limit_in_datetime}")
 
         updated_mibs = db.session.execute(sqlalchemy.text(
             'UPDATE public."Message" SET "lastSentTime" = :current_time \
@@ -55,9 +57,8 @@ class MessagePoolingService(Process):
             AND "sent" = \'false\' AND "sendTime" <= :current_time \
             RETURNING "messageId","message", "sendTime", "sent"'),
             {'current_time': self._current_time, 'message_age_limit':message_age_limit_in_datetime})
-        print("Fetching mibs that match criteria")
+        LOGGER.info("Fetching mibs that match criteria")
         for mib in updated_mibs:
-            print(mib)
             mib_with_email_recipients = self._get_mib_with_email_recipients(mib)
             if len(mib_with_email_recipients) > 0:
                 message_id = mib_with_email_recipients['message_id']
@@ -66,8 +67,8 @@ class MessagePoolingService(Process):
                 all_mib_emails_sent = self._email_service.send_email(
                     message_id, message, recipients)
                 if all_mib_emails_sent is True:
-                    print(f'All emails for message with id: {message_id} have been sent sent')
-                    print(self._current_time)
+                    LOGGER.debug(f'All emails for message with id: {message_id} have been sent sent')
+                    LOGGER.info(self._current_time)
                     message = Message.query.get(message_id)
                     message.sent = True
                     db.session.add(message)
@@ -103,7 +104,7 @@ class MessagePoolingService(Process):
                 send_attempt_time is updated for all given recipients
         '''
         assert email_recipients is not None
-        print("Updating recipients send attempt time")
+        LOGGER.info("Updating recipients send attempt time")
         for recipient in email_recipients:
             recipient.send_attempt_time = self._current_time
             db.session.add(recipient)

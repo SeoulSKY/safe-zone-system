@@ -3,11 +3,12 @@ Email Service responsible for sending mib messages to their respective recipient
 """
 import smtplib
 from models import EmailMessageRecipient, db
+from lib.logger.safezone_logger import get_logger
 
 SMTP_HOST_PORT = 25
 SMTP_HOST = 'smtp-dev'
 SENDER = 'cmpt371team1@gmail.com'
-
+LOGGER = get_logger(__name__)
 class EmailService:
     '''
     Class is responsible for formulating and sending email
@@ -21,11 +22,11 @@ class EmailService:
         send email sequentially and update recipient.sent column to true
         '''
         for recipient in recipients:
-            print(f"messageid => {message_id}, message => {message}, recipients => {recipients}")
+            LOGGER.debug(f"messageid => {message_id}, message => {message}, recipients => {recipients}")
             assert len(message) > 0
             assert message_id is not None
             recipient_email_address = recipient['email']
-            print(f'Attempting to send email to {recipient_email_address}...')
+            LOGGER.debug(f'Attempting to send email to {recipient_email_address}...')
             #TODO: use some template for email body
             email_body = f'Hello, \n{message}'
             email_subject = 'MIBS'
@@ -36,12 +37,11 @@ class EmailService:
                     server.sendmail(SENDER, recipient_email_address , email_content)
                     recipient_obj = EmailMessageRecipient.query.filter(
                         EmailMessageRecipient.email == recipient_email_address).first()
-                    print(f"recipient obj => {recipient_obj}")
                     recipient_obj.sent = True
                     db.session.add(recipient_obj)
                 except smtplib.SMTPException:
                     self.all_mibs_sent = False
-                    print(f'Could not send message with id: {message_id} \
+                    LOGGER.debug(f'Could not send message with id: {message_id} \
                         to {recipient_email_address}')
         db.session.commit()
         if (self._all_mibs_sent and len(recipients) > 0):
