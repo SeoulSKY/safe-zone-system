@@ -344,6 +344,10 @@ jobs:
       artifact-name: artifact-${{github.job}}
       docker-dir: ${{ github.workspace }}/docker/test
       test-dir: ${{ github.workspace }}/test/
+    permissions:
+      packages: write
+      contents: read
+    
     steps:
       - name: checkout repo
         uses: actions/checkout@v2
@@ -355,6 +359,13 @@ jobs:
         with:
           python-version: 3.8
 
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.registry }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: run containers
         run: docker-compose -f docker-compose.yml -f local/docker-compose.postgres.yml --env-file local/local-test.env up -d
         working-directory: ${{env.docker-dir}}
