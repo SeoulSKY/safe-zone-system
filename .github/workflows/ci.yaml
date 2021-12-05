@@ -468,7 +468,6 @@ jobs:
 
   publish-status-report-job:
     if: always()
-    if: github.event_name == 'push'
     needs: [date-job, python-job, react-native-job, web-job, docker-job, smoke-test, publish-android-apk]
     runs-on: ubuntu-latest
     env:
@@ -499,7 +498,7 @@ jobs:
           echo ${{steps.report_gen.outputs.report}}
 
       - name: post job status report to discord #publish to discord in md format
-        if: always()
+        if: github.event_name == 'push'
         uses: sarisia/actions-status-discord@v1.8.6
         with: 
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
