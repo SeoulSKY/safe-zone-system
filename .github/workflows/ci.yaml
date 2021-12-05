@@ -273,7 +273,7 @@ jobs:
            echo ::set-output name=cms-mibs-web::${{env.true}}
            echo ::set-output name=reverse-proxy-keycloak-postgres-dev-smtp-dev::${{env.false}}
          fi
-         if [[ ${{matrix.dir}} == 'reverse-proxy' || 'keycloak'|| ${{matrix.dir}} == 'postgres-dev' || ${{matrix.dir}} == 'smtp-dev' ]] ; then
+         if [[ ${{matrix.dir}} == 'reverse-proxy' || ${{matrix.dir}} == 'keycloak' || ${{matrix.dir}} == 'postgres-dev' || ${{matrix.dir}} == 'smtp-dev' ]] ; then
            echo ::set-output name=directory::${{github.workspace}}
            echo ::set-output name=cms-mibs-web::${{env.false}}
            echo ::set-output name=reverse-proxy-keycloak-postgres-dev-smtp-dev::${{env.true}}
@@ -299,7 +299,6 @@ jobs:
            docker push ${{env.registry-owner-dir}}:${{env.master}}
            docker push ${{env.registry-owner-dir}}:${{env.master}}-${{needs.date-job.outputs.date}}
          fi
-        
          exit 0
         shell: bash
         working-directory: ${{steps.directory-vars.outputs.directory}}
