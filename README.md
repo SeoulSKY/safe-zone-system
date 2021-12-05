@@ -17,8 +17,12 @@
 2. Nagivate to the `<project root>/docker/dev` directory of the project (where the docker-compose.yml file is located).
 3. Execute the following command to build and start all docker containers.
     ```
-    docker-compose --env-file dev.env up --build
+    AUTH_ISSUER='address' docker-compose --env-file dev.env up --build
     ```
+    * 'address' is where  expo is running on your local machine. You can find this when you start expo. An example may be:
+       ```
+       AUTH_ISSUER='10.0.0.243' docker-compose --env-file dev.env up --build
+       ```
 
 ### Starting Expo
 1. Ensure NodeJS 16 and Android Studio is installed. 
@@ -105,8 +109,12 @@
 2. Nagivate to the `<project root>/docker/test` directory of the project (where the docker-compose.yml file is located).
 3. Execute the following command to pull and start all docker containers using the latest code from master.
     ```
-    docker-compose -f docker-compose.yml -f local/docker-compose.postgres.yml --env-file local/local-test.env up 
+    AUTH_ISSUER='address' docker-compose -f docker-compose.yml -f local/docker-compose.postgres.yml --env-file local/local-test.env up 
     ```
+    * 'address' is where  expo is running on your local machine. You can find this when you start expo. An example may be:
+       ```
+       AUTH_ISSUER='10.0.0.243' docker-compose -f docker-compose.yml -f local/docker-compose.postgres.yml --env-file local/local-test.env up 
+       ```
     * To start different server version you can set the TAG variable with the appropriate docker tag.
       * This will pull the latest ID4 images. 
         ```
