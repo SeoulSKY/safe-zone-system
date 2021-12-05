@@ -878,6 +878,48 @@ class TestMibsApi(unittest.TestCase):
                          response.get_data(as_text=True))
         self.assertEqual(0, self.get_num_user_messages())
 
+    def test_delete_invalid_mib_id_when_user_has_no_mib(self):
+        '''
+        Test DELETE /mibs with invalid messageId when when user has no mib
+        '''
+        invalid_message_id= "helloUniverse"
+        with self.app.app_context():
+            response = self.client.delete(f'/mibs?messageId={invalid_message_id}',
+                headers={'Authorization': 'Bearer ' + self.get_token()})
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
+        self.assertEqual('Invalid messageId',
+                         response.get_data(as_text=True))
+        self.assertEqual(0, self.get_num_user_messages())
+
+    def test_delete_invalid_mib_id_when_user_has_one_mib(self):
+        '''
+        Test DELETE /mibs with invalid messageId when when user has one mib
+        '''
+        self.create_message()
+        invalid_message_id= "helloUniverse"
+        with self.app.app_context():
+            response = self.client.delete(f'/mibs?messageId={invalid_message_id}',
+                headers={'Authorization': 'Bearer ' + self.get_token()})
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
+        self.assertEqual('Invalid messageId',
+                         response.get_data(as_text=True))
+        self.assertEqual(1, self.get_num_user_messages())
+
+    def test_delete_invalid_mib_id_when_user_has_two_mibs(self):
+        '''
+        Test DELETE /mibs with invalid messageId when when user has two mibs
+        '''
+        self.create_message()
+        self.create_message(message_id=2)
+        invalid_message_id= "helloUniverse"
+        with self.app.app_context():
+            response = self.client.delete(f'/mibs?messageId={invalid_message_id}',
+                headers={'Authorization': 'Bearer ' + self.get_token()})
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
+        self.assertEqual('Invalid messageId',
+                         response.get_data(as_text=True))
+        self.assertEqual(2, self.get_num_user_messages())
+
     def test_delete_specific_mib_when_user_has_two_mibs(self):
         '''
         Test DELETE /mibs to delete a specific mib when user has two mibs

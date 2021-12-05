@@ -257,6 +257,12 @@ def delete():
     assert request is not None
     message_id_unparsed = request.args.get('messageId', None)
 
+    if message_id_unparsed is not None:
+        if not message_id_unparsed.isnumeric() :
+            message = 'Invalid messageId'
+            status_code = HTTPStatus.BAD_REQUEST
+            return message,status_code
+
     message_id = None if message_id_unparsed is None else int(
         message_id_unparsed)
     user_id = auth_token['sub']
