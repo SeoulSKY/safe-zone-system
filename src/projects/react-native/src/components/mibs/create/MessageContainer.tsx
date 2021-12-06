@@ -25,10 +25,11 @@ export function MessageContainer({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    width: '100%',
+    height: 340,
   },
   subtitle: {
-    paddingVertical: 8,
+    paddingTop: 8,
     paddingHorizontal: 8,
     fontSize: 14,
   },

@@ -30,7 +30,7 @@ export function MibsCreateScreen({
   const [showApiModal, setShowApiModal] = useState(false);
   const [receivedResponse, setReceivedResponse] = useState(false);
   const [requestSuccessful, setRequestSuccessful] = useState(false);
-  const [apiReturn, setApiReturn] = useState('');
+  const [apiResultModalMessage, setApiResultModalMessage] = useState('');
 
   const auth = useContext(AuthContext);
   const {setMibsUpdate} = useContext(MibsUpdateContext);
@@ -45,42 +45,46 @@ export function MibsCreateScreen({
   }, []);
 
   const send = () => {
-    const recipientsList = recipients.map((recipient) =>
-      ({email: recipient.value} as EmailRecipient));
+    if (apiResultModalMessage === '') {
+      setApiResultModalMessage('Sending...');
+      openApiModal();
+      const recipientsList = recipients.map((recipient) =>
+        ({email: recipient.value} as EmailRecipient));
 
-    const mib : MessageInABottle = {
-      message: message,
-      recipients: recipientsList,
-      sendTime: sendDate.toUTCString(),
-    };
-    setApiReturn('Sending...');
-    openApiModal();
-    updateToken(auth.tokens?.accessToken);
-    global.mibsApi.createMessage(mib)
-        .then((response) => {
-          setApiReturn(response.data);
-          setReceivedResponse(true);
-          setRequestSuccessful(true);
-          setMibsUpdate(true);
-        })
-        .catch((error) => {
-          if (error.response) {
-            setApiReturn(`Cannot create MIB: ${error.response.data}`);
-          } else if (error.request) {
-            setApiReturn(`Server did not respond. Try again later.`);
-          } else {
-            setApiReturn(`Something went wrong sending the data.
-            Try again later.`);
-          }
-          setReceivedResponse(true);
-        });
+      const mib : MessageInABottle = {
+        message: message,
+        recipients: recipientsList,
+        sendTime: sendDate.toUTCString(),
+      };
+      updateToken(auth.tokens?.accessToken);
+      global.mibsApi.createMessage(mib)
+          .then((response) => {
+            setApiResultModalMessage(response.data);
+            setReceivedResponse(true);
+            setRequestSuccessful(true);
+            setMibsUpdate(true);
+          })
+          .catch((error) => {
+            if (error.response) {
+              setApiResultModalMessage(`Cannot create MIB:
+              ${error.response.data}`);
+            } else if (error.request) {
+              setApiResultModalMessage(`Server did not respond.
+              Try again later.`);
+            } else {
+              setApiResultModalMessage(`Something went wrong sending the data.
+              Try again later.`);
+            }
+            setReceivedResponse(true);
+          });
+    }
   };
 
   const discard = () => {
     setIsNew(true);
     setRecipients([]);
     setMessage('');
-    setApiReturn('');
+    setApiResultModalMessage('');
     setReceivedResponse(false);
     setRequestSuccessful(false);
     navigation.goBack();
@@ -95,6 +99,8 @@ export function MibsCreateScreen({
     setShowApiModal(false);
     if (requestSuccessful) {
       discard();
+    } else {
+      setApiResultModalMessage('');
     }
   };
 
@@ -121,7 +127,7 @@ export function MibsCreateScreen({
       />
 
       <MessageModal
-        message={apiReturn}
+        message={apiResultModalMessage}
         showModal={showApiModal}
         showOkButton={receivedResponse}
         closeModal={closeApiModal}
