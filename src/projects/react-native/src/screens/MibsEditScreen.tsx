@@ -7,6 +7,8 @@ import {EmailRecipient, MessageInABottle} from 'mibs';
 import {MibsUpdateContext} from '@/common/mibsContext';
 import {isEmail, isSMS, isUser, Recipient} from '@/common/util';
 import {assert} from '@/common/assertions';
+import {updateToken} from '@/common/api';
+import {AuthContext} from '@/common/authContext';
 
 
 /**
@@ -50,6 +52,7 @@ export function MibsEditScreen({
   const [requestSuccessful, setRequestSuccessful] = useState(false);
   const [apiReturn, setApiReturn] = useState('');
 
+  const auth = useContext(AuthContext);
   const {setMibsUpdate} = useContext(MibsUpdateContext);
   const updateMibItemView = route.params.setMessage;
 
@@ -83,6 +86,7 @@ export function MibsEditScreen({
     };
     setApiReturn('Sending...');
     openApiModal();
+    updateToken(auth.tokens?.accessToken);
     global.mibsApi.updateMessage(mib)
         .then((response) => {
           setApiReturn(response.data);
