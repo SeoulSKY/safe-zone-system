@@ -133,17 +133,21 @@ def _handle_post_put(is_put=False):
 
         email_recipients, sms_recipients, user_recipients, unknown_recipients = \
             _parse_recipients(body['recipients'])
+
         if len(unknown_recipients) > 0:
             LOGGER.info('Unknown recipient types')
             return False, (f'Unknown recipient types: {json.dumps(unknown_recipients)}', \
                 HTTPStatus.BAD_REQUEST), None
 
         if len(email_recipients + sms_recipients + user_recipients) <= 0:
-            return False, ('Must have atleast 1 recipient', HTTPStatus.BAD_REQUEST), None
+            return False, ('Must have at least 1 recipient', HTTPStatus.BAD_REQUEST), None
 
         if not 'sendTime' in body:
             return False, ('"sendTime" missing from request body', HTTPStatus.BAD_REQUEST), None
 
+        email_recipients_string_list = [str(r.email) for r in email_recipients]
+        if len(set(email_recipients_string_list)) != len(email_recipients_string_list):
+            return False, ("Can't have duplicate recipients", HTTPStatus.BAD_REQUEST), None
         try:
             datetimeParse(body['sendTime'])
         except ValueError:

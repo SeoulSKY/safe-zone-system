@@ -316,7 +316,7 @@ class TestMibsApi(unittest.TestCase):
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-        self.assertEqual(response.data, b'Must have atleast 1 recipient')
+        self.assertEqual(response.data, b'Must have at least 1 recipient')
 
     def test_post_invalid_recipients(self):
         '''
@@ -502,7 +502,7 @@ class TestMibsApi(unittest.TestCase):
         )
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-        self.assertEqual(response.data, b'Must have atleast 1 recipient')
+        self.assertEqual(response.data, b'Must have at least 1 recipient')
 
     def test_put_invalid_recipients(self):
         '''
