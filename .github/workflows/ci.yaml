@@ -337,7 +337,7 @@ jobs:
           retention-days: 0
 
   smoke-test:
-    # needs: [ date-job, docker-job ]
+    needs: [ date-job, docker-job ]
     runs-on: ubuntu-latest
     env:
       ci-scripts: ${{ github.workspace }}/src/tools/ci/scripts
@@ -374,15 +374,15 @@ jobs:
       - name: list running containers
         run: docker ps
 
-      - name: install dependencies
-        run: |
-          apt-get update && apt-get upgrade python-pip
-          pip install -r requirements.txt 
-        working-directory: ${{env.test-dir}}
+  #     - name: install dependencies
+  #       run: |
+  #         apt-get update && apt-get upgrade python-pip
+  #         pip install -r requirements.txt 
+  #       working-directory: ${{env.test-dir}}
 
-      - name: run smoke test scripts
-        run: python3 smoke_tests/smoke_test.py
-        working-directory: ${{env.test-dir}}
+  #     - name: run smoke test scripts
+  #       run: python3 smoke_tests/smoke_test.py
+  #       working-directory: ${{env.test-dir}}
         
       - name: stop containers
         if: always()
