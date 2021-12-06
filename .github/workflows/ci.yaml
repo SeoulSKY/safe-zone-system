@@ -1,7 +1,7 @@
 name: ci workflow
 on:
   push:
-    branches: [ master, ID*, ci-*]
+    branches: [ master, ID*]
   pull_request:
     branches: [ master, ID* ]
 
@@ -360,6 +360,18 @@ jobs:
         with:
           python-version: 3.8
 
+      - name: Set branch name
+        id: branch
+        run: |
+         if [[ ${{ github.event_name }} == 'push' ]]; then
+           echo ::set-output name=branch::${GITHUB_REF#refs/*/}
+         fi
+         if [[ ${{ github.event_name }} == 'pull_request' ]]; then
+           echo ::set-output name=branch::${{github.base_ref}}
+         fi
+         exit 0
+        shell: bash
+
       - name: Log in to the Container registry
         uses: docker/login-action@v1
         with:
@@ -368,7 +380,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: run containers
-        run: AUTH_ISSUER='safezone-test.usask.ca' TAG=${{needs.date-job.outputs.date}} docker-compose -f docker-compose.yml -f local/docker-compose.postgres.yml --env-file local/local-test.env up -d
+        run: AUTH_ISSUER='localhost' TAG=${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}} docker-compose -f docker-compose.yml -f local/docker-compose.postgres.yml local/docker-compose.postgres.yml f local/docker-compose.smtp.yml --env-file local/local-test.env up -d
         working-directory: ${{env.docker-dir}}
         
       - name: list running containers
@@ -386,7 +398,7 @@ jobs:
         
       - name: stop containers
         if: always()
-        run: TAG=${{needs.date-job.outputs.date}} docker-compose -f docker-compose.yml -f local/docker-compose.postgres.yml --env-file local/local-test.env down
+        run: TAG=${{needs.date-job.outputs.date}} docker-compose -f docker-compose.yml -f local/docker-compose.postgres.yml f local/docker-compose.smtp.yml --env-file local/local-test.env down
         working-directory: ${{env.docker-dir}}
 
       - name: write job status to ci_status.json
