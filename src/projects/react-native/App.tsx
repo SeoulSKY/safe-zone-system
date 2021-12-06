@@ -27,7 +27,6 @@ const Stack = createStackNavigator();
  */
 export default function App() {
   const auth = useLogin();
-  useEffect(() => {updateToken(auth?.tokens?.accessToken)}, [auth]);
   const [mibsUpdate, setMibsUpdate] = useState(true);
 
   if (!auth.loggedIn) {

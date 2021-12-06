@@ -4,6 +4,8 @@ import {MessageInABottle} from 'mibs'
 import {MibItem} from './item/MibItem';
 import {MessageModal} from '@/components/common';
 import {MibsUpdateContext} from '@/common/mibsContext';
+import {updateToken} from '@/common/api';
+import {AuthContext} from '@/common/authContext';
 
 /**
  * A message in a bottle list containing active messages.
@@ -17,6 +19,7 @@ export function ActiveMibList({navigation}: {navigation: Navigation}): ReactElem
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
 
+  const auth = useContext(AuthContext);
   const {mibsUpdate, setMibsUpdate} = useContext(MibsUpdateContext);
 
   const openModal = (message: string) => {
@@ -39,6 +42,7 @@ export function ActiveMibList({navigation}: {navigation: Navigation}): ReactElem
    *  sets `mibsList` to be the response of the GET request.
    */
   const getMessages = () => {
+    updateToken(auth.tokens?.accessToken);
     global.mibsApi.getMessage()
       .then(response => {
         // the following is a workaround due to issue #261, and must be updated when it is resolved.

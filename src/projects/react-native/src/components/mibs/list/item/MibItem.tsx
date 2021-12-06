@@ -1,8 +1,10 @@
 import React, {ReactElement, useContext} from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { MessageInABottle } from 'mibs';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {MessageInABottle} from 'mibs';
 import MibItemHeader from './MibItemHeader';
-import { MibsUpdateContext } from '@/common/mibsContext';
+import {MibsUpdateContext} from '@/common/mibsContext';
+import {updateToken} from '@/common/api';
+import {AuthContext} from '@/common/authContext';
 
 
 /**
@@ -22,6 +24,7 @@ export function MibItem({
   active: boolean,
   navigation: Navigation,
 }): ReactElement {
+  const auth = useContext(AuthContext);
   const {setMibsUpdate} = useContext(MibsUpdateContext);
   
   /**
@@ -35,6 +38,7 @@ export function MibItem({
    *  opens a model on failure
    */
   const onCancelPress = () => {
+    updateToken(auth.tokens?.accessToken);
     global.mibsApi.deleteMessage(message.messageId)
       .then(() => setMibsUpdate(true))
       .catch(() => openModal('Failed to delete mib. Try again later'));

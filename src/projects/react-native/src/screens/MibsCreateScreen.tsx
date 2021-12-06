@@ -9,6 +9,8 @@ import {
 } from '@/components/mibs/create';
 import {EmailRecipient, MessageInABottle} from 'mibs';
 import {MibsUpdateContext} from '@/common/mibsContext';
+import {updateToken} from '@/common/api';
+import {AuthContext} from '@/common/authContext';
 
 /**
  * The Screen for the Create Message In a Bottle feature.
@@ -30,6 +32,7 @@ export function MibsCreateScreen({
   const [requestSuccessful, setRequestSuccessful] = useState(false);
   const [apiReturn, setApiReturn] = useState('');
 
+  const auth = useContext(AuthContext);
   const {setMibsUpdate} = useContext(MibsUpdateContext);
 
   useEffect(() => {
@@ -52,6 +55,7 @@ export function MibsCreateScreen({
     };
     setApiReturn('Sending...');
     openApiModal();
+    updateToken(auth.tokens?.accessToken);
     global.mibsApi.createMessage(mib)
         .then((response) => {
           setApiReturn(response.data);
