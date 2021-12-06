@@ -24,26 +24,12 @@ class TestMIBsSmokeTest(unittest.TestCase):
         mibs_response = requests.request("GET", mibs_url, headers=mibs_headers, data={})
         self.assertEqual(mibs_response.text, "Hello from MIBS")
 
- ######### CMS SMOKE TEST #########
-class TestCMSSmokeTest(unittest.TestCase):
-    def test_cms_response_text(self):
-        cms_url = "http://localhost/cms/hello"
-        cms_response = requests.request("GET", cms_url, headers={}, data={})
-        self.assertEqual(cms_response.text, "Hello from CMS")
-
  ######### KEYCLOAK SMOKE TEST #########
 class TestKeycloakSmokeTest(unittest.TestCase):
    def test_keycloak_response_status_code(self):
        keycloak_url = "http://localhost/auth/realms/safe-zone"
        keycloak_response = requests.request("GET", keycloak_url, headers={}, data={})
        self.assertEqual(keycloak_response.status_code, 200)
-
- ######### WEB SMOKE TEST #########
-class TestWebSmokeTest(unittest.TestCase):
-    def test_web_response_status_code(self):
-        web_url = "http://localhost"
-        web_response = requests.request("GET", web_url, headers={}, data={})
-        self.assertEqual(web_response.status_code, 200)
 
  ######### ACCOUNT CREATION TEST #########
  # class TestAccountCreation(unittest.TestCase):
