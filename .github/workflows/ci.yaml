@@ -380,7 +380,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: run containers
-        run: AUTH_ISSUER='localhost' TAG=${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}} docker-compose -f docker-compose.yml -f local/docker-compose.postgres.yml local/docker-compose.postgres.yml f local/docker-compose.smtp.yml --env-file local/local-test.env up -d
+        run: AUTH_ISSUER='localhost' TAG=${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}} docker-compose -f docker-compose.yml -f local/docker-compose.postgres.yml -f local/docker-compose.smtp.yml --env-file local/local-test.env up -d
         working-directory: ${{env.docker-dir}}
         
       - name: list running containers
@@ -398,7 +398,7 @@ jobs:
         
       - name: stop containers
         if: always()
-        run: TAG=${{needs.date-job.outputs.date}} docker-compose -f docker-compose.yml -f local/docker-compose.postgres.yml f local/docker-compose.smtp.yml --env-file local/local-test.env down
+        run: TAG=${{steps.branch.outputs.branch}}-${{needs.date-job.outputs.date}} docker-compose -f docker-compose.yml -f local/docker-compose.postgres.yml -f local/docker-compose.smtp.yml --env-file local/local-test.env down
         working-directory: ${{env.docker-dir}}
 
       - name: write job status to ci_status.json
