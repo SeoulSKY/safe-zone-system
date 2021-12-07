@@ -86,6 +86,15 @@
   yarn test -- --watch
   ```
 
+#### Starting docker
+* There's a script in the main directory that helps start the docker container
+Usage ./start.sh <AUTH_ISSUER> [mode] [postgres] [smtp]
+AUTH_ISSUER - The ip address of the auth issuer. See above to find it.
+mode - [p]roduction or [d]evelopment(optional defaults to development)
+postgres - starts a postgres also(only for production)(optional defaults to not starting it)
+smtp - starts a smtp server also(only for production)(optional defaults to not starting it)
+
+
 #### Keycloak
 * The keycloak admin page can be found http://localhost/auth/admin/
 * Login to the admin account.
