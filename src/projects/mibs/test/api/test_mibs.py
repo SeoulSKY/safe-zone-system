@@ -1026,6 +1026,19 @@ class TestMibsApi(unittest.TestCase):
         self.assertEqual(data[4]['message_id'], 9)
         self.assertEqual(status, HTTPStatus.OK)
 
+    def test_get_mib_with_sent_mibs(self):
+        '''
+        Test GET /mibs to try retrieving mibs where some have been sent
+        '''
+        self.create_message(message_id=1, sent=True)
+        self.create_message(message_id=2, sent=False)
+        response = self.client.get('/mibs',
+            headers={'Authorization': 'Bearer ' + self.get_token()})
+        status = response.status_code
+        data = response.get_json()
+        self.assertNotEqual(data, [])
+        self.assertEqual(data[0]['message_id'], 2)
+        self.assertEqual(status, HTTPStatus.OK)
 
     def create_email_recipient(self,
                                message_send_request_id=1,
@@ -1046,7 +1059,8 @@ class TestMibsApi(unittest.TestCase):
         message_id=test_message_id,
         user_id=test_user_id,
         message='test',
-        send_time=datetime.now()):
+        send_time=datetime.now(),
+        sent=False):
         '''
         Helper function to create and insert a message in the database
         '''
@@ -1054,7 +1068,8 @@ class TestMibsApi(unittest.TestCase):
             new_message = Message(message_id=message_id,
                 user_id=user_id,
                 message=message,
-                send_time=send_time)
+                send_time=send_time,
+                sent=sent)
             db.session.add(new_message)
             db.session.commit()
 
