@@ -19,7 +19,7 @@
     ```
     AUTH_ISSUER='address' docker-compose --env-file dev.env up --build
     ```
-    * 'address' is where  expo is running on your local machine. You can find this when you start expo. An example may be:
+    * 'address' is the IP address of your local machine. You can find this using `ipconfig`. An example may be:
        ```
        AUTH_ISSUER='10.0.0.243' docker-compose --env-file dev.env up --build
        ```
