@@ -8,7 +8,7 @@ class TestGetAccessToken(unittest.TestCase):
     '''
     The test cases for the get_access_token function.
     '''
-    def valid_request(self):
+    def test_valid_request(self):
         '''
         Test Case:
         Request has an Authorization header with a valid value.
@@ -21,7 +21,7 @@ class TestGetAccessToken(unittest.TestCase):
         )
 
 
-    def no_auth_header_value(self):
+    def test_no_auth_header_value(self):
         '''
         Test Case:
         Request has an Authorization header with a value of None.
@@ -29,7 +29,7 @@ class TestGetAccessToken(unittest.TestCase):
         with self.assertRaises(MissingAuthError):
             get_access_token(Request(headers={'Authorization': None}))
 
-    def no_auth_empty_header_value(self):
+    def test_no_auth_empty_header_value(self):
         '''
         Test Case:
         Request has an Authorization header with an empty string
@@ -37,7 +37,7 @@ class TestGetAccessToken(unittest.TestCase):
         with self.assertRaises(MissingAuthError):
             get_access_token(Request(headers={'Authorization': ""}))
 
-    def no_auth_empty_header(self):
+    def test_no_auth_empty_header(self):
         '''
         Test Case:
         Request has an Authorization header with an empty dictionary
@@ -46,7 +46,7 @@ class TestGetAccessToken(unittest.TestCase):
             get_access_token(Request(headers={}))
 
 
-    def no_auth_header(self):
+    def test_no_auth_header(self):
         '''
         Test Case:
         Request has no Authorization header.
@@ -55,7 +55,7 @@ class TestGetAccessToken(unittest.TestCase):
             get_access_token(Request())
 
 
-    def no_auth_header_wrong_string(self):
+    def test_no_auth_header_wrong_string(self):
         '''
         Test Case:
         Request has wrong string in header
@@ -64,7 +64,7 @@ class TestGetAccessToken(unittest.TestCase):
             get_access_token(Request(headers={"random": "random"}))
 
 
-    def invalid_header_prefix(self):
+    def test_invalid_header_prefix(self):
         '''
         Test Case:
         Request has an Authorization header with a value that contains an
