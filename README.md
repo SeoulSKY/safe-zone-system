@@ -55,7 +55,7 @@
 
 ### Useful commands
 #### React Native Project
-* Run linting
+* Run linting:
   ```
   yarn run lint
   ```
