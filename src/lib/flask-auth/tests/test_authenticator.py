@@ -40,6 +40,7 @@ class TestAuthenticatorInit(unittest.TestCase):
         self.assertIsNone(auth.issuer)
         self.assertIsNone(auth.audience)
         self.assertIsNone(auth.jwks_client)
+        self.assertEqual(auth._app_initialized, False)
 
 
     def test_no_issuer_provided(self):
@@ -83,6 +84,19 @@ class TestAuthenticatorInit(unittest.TestCase):
         with self.assertRaises(AssertionError):
             Authenticator(app)
 
+    def test_attributes_data_type(self):
+        '''
+        test assertion for wrong data type
+        '''
+        app = Flask(__name__)
+        app.config.update({
+            'TESTING': True,
+            'AUTH_ISSUER': 0,
+            'AUTH_AUDIENCE': 0,
+            'AUTH_JWKS_URI': 0,
+        })
+        with self.assertRaises(AssertionError):
+            Authenticator(app)
 
     def test_init_valid(self):
         '''
@@ -100,6 +114,15 @@ class TestAuthenticatorInit(unittest.TestCase):
         self.assertEqual(auth.issuer, 'test_provider')
         self.assertEqual(auth.audience, 'test')
         self.assertEqual(auth.jwks_client.uri, 'http://localhost/test/jwks')
+        self.assertEqual(auth._app_initialized, True)
+
+    def test_init_invalid(self):
+        '''
+        Test that Authenticator will not initialize when given an invalid app
+        '''
+        app = "random"
+        with self.assertRaises(AssertionError):
+            Authenticator(app)
 
 
     def test_init_valid_later(self):
@@ -119,6 +142,16 @@ class TestAuthenticatorInit(unittest.TestCase):
         self.assertEqual(auth.issuer, 'test_provider')
         self.assertEqual(auth.audience, 'test')
         self.assertEqual(auth.jwks_client.uri, 'http://localhost/test/jwks')
+
+    def test_init_invalid_later(self):
+        '''
+        Test that Authenticator initialized with no app, provided an invalid app
+        later on will raise error
+        '''
+        auth = Authenticator()
+        with self.assertRaises(AssertionError):
+            auth.init_app("random")
+        self.assertEqual(auth._app_initialized, False)
 
 
 class TestAuthenticator(unittest.TestCase):
@@ -154,7 +187,7 @@ class TestAuthenticator(unittest.TestCase):
         @self.app.route('/test/unprotected', methods=['GET'])
         def unprotected():
             return str(auth_token), HTTPStatus.OK
-           
+
 
     def test_jwks_provider_bad_connection(self):
         '''
@@ -183,6 +216,29 @@ class TestAuthenticator(unittest.TestCase):
             )
             self.assertIsNotNone(response.get_json())
 
+    def test_jwks_provider_json_response(self):
+        '''
+        Test that the json response being raised contains the correct information
+        '''
+        headers = {'alg': 'RS256', 'typ': 'JWT', 'kid': '0'}
+        payload = {
+            'iss': 'test_issuer',
+            'exp': int(time.time()) + 30,
+            'aud': 'test',
+            'sub': 'test-user',
+        }
+        access_token = jwt.encode(payload, private_pem,
+            algorithm='RS256',
+            headers=headers
+        )
+        self.auth.jwks_client = jwt.PyJWKClient('http://localhost/auth/jwks')
+        with self.app.test_client() as client:
+            response = client.get('/test/protected', headers={
+                'Authorization': 'Bearer ' + access_token
+            })
+            self.assertEqual(response.get_json()['error'], 'connection_error')
+            self.assertEqual(response.get_json()['error_description'], 'cannot connect to auth provider')
+
 
     def test_require_auth_no_auth_header(self):
         '''
@@ -195,6 +251,17 @@ class TestAuthenticator(unittest.TestCase):
             self.assertIsNone(response.get_json())
 
 
+    def test_require_auth_empty_header(self):
+        '''
+        Test that the require_auth decorator method handles requests with empty
+        Authorization header.
+        '''
+        with self.app.test_client() as client:
+            response = client.get('/test/protected', headers={})
+            self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
+            self.assertIsNone(response.get_json())
+
+
     def test_require_auth_invalid_auth_header(self):
         '''
         Test that the require_auth decorator method handles invalid 
@@ -203,6 +270,32 @@ class TestAuthenticator(unittest.TestCase):
         with self.app.test_client() as client:
             response = client.get('/test/protected', headers={
                 'Authorization': 'Code asdfghjkl'
+             })
+            self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
+            self.assertIsNone(response.get_json())
+
+
+    def test_require_auth_empty_auth_header(self):
+        '''
+        Test that the require_auth decorator method handles empty
+        Authorization headers properly.
+        '''
+        with self.app.test_client() as client:
+            response = client.get('/test/protected', headers={
+                'Authorization': ''
+             })
+            self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
+            self.assertIsNone(response.get_json())
+
+
+    def test_require_auth_None_auth_header(self):
+        '''
+        Test that the require_auth decorator method handles empty
+        Authorization headers properly.
+        '''
+        with self.app.test_client() as client:
+            response = client.get('/test/protected', headers={
+                'Authorization': None
              })
             self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
             self.assertIsNone(response.get_json())
@@ -232,6 +325,29 @@ class TestAuthenticator(unittest.TestCase):
             self.assertIsNotNone(response.get_json())
 
 
+    def test_require_auth_invalid_token_expired_json_response(self):
+        '''
+        Test that the require_auth decorator method json response is correct.
+        '''
+        headers = {'alg': 'RS256', 'typ': 'JWT', 'kid': '0'}
+        payload = {
+            'iss': 'test_issuer',
+            'exp': int(time.time()) - 30,
+            'aud': 'test',
+            'sub': 'test-user',
+        }
+        access_token = jwt.encode(payload, private_pem,
+            algorithm='RS256',
+            headers=headers
+        )
+        with self.app.test_client() as client:
+            response = client.get('/test/protected', headers={
+                'Authorization': 'Bearer ' + access_token
+            })
+            self.assertEqual(response.get_json()['error'], "invalid_token")
+            self.assertEqual(response.get_json()['error_description'], "Signature has expired")
+
+
     def test_require_auth_invalid_claim(self):
         '''
         Test that the require_auth decorator method handles requests that 
@@ -254,6 +370,29 @@ class TestAuthenticator(unittest.TestCase):
             })
             self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
             self.assertIsNotNone(response.get_json())
+
+    def test_require_auth_invalid_claim_json(self):
+        '''
+        Test that the require_auth decorator method handles requests that
+        contains an access token with an invalid claim.
+        '''
+        headers = {'alg': 'RS256', 'typ': 'JWT', 'kid': '0'}
+        payload = {
+            'iss': 'test_issuer',
+            'exp': int(time.time()) + 30,
+            'aud': 'invalid-aud',
+            'sub': 'test-user',
+        }
+        access_token = jwt.encode(payload, private_pem,
+            algorithm='RS256',
+            headers=headers
+        )
+        with self.app.test_client() as client:
+            response = client.get('/test/protected', headers={
+                'Authorization': 'Bearer ' + access_token
+            })
+            self.assertEqual(response.get_json()['error'], 'invalid_token')
+            self.assertEqual(response.get_json()['error_description'], 'Invalid audience')
 
 
     def test_require_auth_token_from_other_provider(self):
